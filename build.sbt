@@ -31,11 +31,11 @@ lazy val commonSettings = Seq(
   }
 )
 
-lazy val marketsIndex = project
+lazy val dexIndex = project
   .in(file("."))
-  .withId("cardano-markets-index")
+  .withId("cardano-dex-index")
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
-  .settings(name := "cardano-markets-index")
+  .settings(name := "cardano-dex-index")
   .aggregate(core, tracker, dexAggregator, dbWriter, api)
 
 lazy val core = project
