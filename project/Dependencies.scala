@@ -13,6 +13,7 @@ object Dependencies {
     val mouse           = "0.26.2"
     val enumeratum      = "1.7.0"
     val enumeratumCirce = "1.7.0"
+    val sttpVersion     = "3.3.11"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -43,6 +44,11 @@ object Dependencies {
     val mouse = "org.typelevel" %% "mouse" % V.mouse
 
     val pureconfig = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureconfig
+
+    val sttpCore      = "com.softwaremill.sttp.client3" %% "core"                               % V.sttpVersion
+    val sttpCirce     = "com.softwaremill.sttp.client3" %% "circe"                              % V.sttpVersion
+    val sttpClientFs2 = "com.softwaremill.sttp.client3" %% "async-http-client-backend-fs2-ce2"  % V.sttpVersion
+    val sttpClientCE2 = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats-ce2" % V.sttpVersion
 
     val tapirCore    = "com.softwaremill.sttp.tapir" %% "tapir-core"               % V.tapir
     val tapirCirce   = "com.softwaremill.sttp.tapir" %% "tapir-json-circe"         % V.tapir
