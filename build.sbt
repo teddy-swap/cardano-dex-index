@@ -35,6 +35,7 @@ lazy val dexIndex = project
   .in(file("."))
   .withId("cardano-dex-index")
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
+  .settings(commonSettings)
   .settings(name := "cardano-dex-index")
   .aggregate(core, tracker, dexAggregator, dbWriter, api)
 
@@ -42,11 +43,13 @@ lazy val core = project
   .in(file("modules/core"))
   .withId("cardano-markets-core")
   .settings(name := "cardano-markets-core")
+  .settings(commonSettings)
 
 lazy val tracker = project
   .in(file("modules/tracker"))
   .withId("cardano-markets-tracker")
   .settings(name := "cardano-markets-tracker")
+  .settings(commonSettings)
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
@@ -54,6 +57,7 @@ lazy val dexAggregator = project
   .in(file("modules/dex-aggregator"))
   .withId("cardano-dex-aggregator")
   .settings(name := "cardano-dex-aggregator")
+  .settings(commonSettings)
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
@@ -61,6 +65,7 @@ lazy val dbWriter = project
   .in(file("modules/db-writer"))
   .withId("cardano-db-writer")
   .settings(name := "cardano-db-writer")
+  .settings(commonSettings)
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
@@ -68,5 +73,6 @@ lazy val api = project
   .in(file("modules/markets-api"))
   .withId("cardano-markets-api")
   .settings(name := "cardano-markets-api")
+  .settings(commonSettings)
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
