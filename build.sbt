@@ -50,6 +50,21 @@ lazy val tracker = project
   .withId("cardano-markets-tracker")
   .settings(name := "cardano-markets-tracker")
   .settings(commonSettings)
+  .settings(libraryDependencies ++=  List(
+    Libraries.sttpCore,
+    Libraries.sttpCirce,
+    Libraries.sttpClientFs2,
+    Libraries.sttpClientCE2,
+    Libraries.redis4catsEffects,
+    Libraries.derevoCats,
+    Libraries.derevoCatsTagless,
+    Libraries.derevoCirce,
+    Libraries.tofuDerivation,
+    Libraries.jawnFs2,
+    Libraries.tofuFs2,
+    Libraries.kafka,
+    Libraries.derevoPureconfig
+  ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
