@@ -3,13 +3,13 @@ package fi.spectrumlabs.config
 import derevo.derive
 import tofu.WithContext
 import tofu.logging.derivation.{hidden, loggable}
-import tofu.optics.macros.{ClassyOptics, promote}
+import tofu.optics.macros.{promote, ClassyOptics}
 
 @ClassyOptics
 @derive(loggable)
 final case class AppContext(
-                             @promote @hidden config: ConfigBundle,
-                           )
+  @promote @hidden config: ConfigBundle,
+)
 
 object AppContext extends WithContext.Companion[AppContext] {
 

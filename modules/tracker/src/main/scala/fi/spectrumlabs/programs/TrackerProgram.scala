@@ -40,7 +40,7 @@ object TrackerProgram {
   private final class Impl[S[_]: Monad: Evals[*[_], F]: FunctorFilter: Temporal[*[_], C]: Compile[*[_], F], F[
     _
   ]: Monad, C[_]: Foldable](producer: Producer[String, Transaction, S])(
-                                                       implicit cache: TrackerCache[F],
+    implicit cache: TrackerCache[F],
     explorer: Explorer[S, F],
     filter: Filter[F]
   ) extends TrackerProgram[S] {

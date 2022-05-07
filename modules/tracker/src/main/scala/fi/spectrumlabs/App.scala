@@ -40,9 +40,9 @@ object App extends EnvApp[AppContext] {
     for {
       blocker <- Blocker[InitF]
       configs <- Resource.eval(ConfigBundle.load[InitF](configPathOpt, blocker))
-      ctx                                = AppContext.init(configs)
-      implicit0(ul: Unlift[RunF, InitF]) = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
-      implicit0(isoKRun: IsoK[RunF, InitF])                     = IsoK.byFunK(wr.runContextK(ctx))(wr.liftF)
+      ctx                                   = AppContext.init(configs)
+      implicit0(ul: Unlift[RunF, InitF])    = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
+      implicit0(isoKRun: IsoK[RunF, InitF]) = IsoK.byFunK(wr.runContextK(ctx))(wr.liftF)
       implicit0(redis: RedisCommands[RunF, String, Int])      <- mkRedis(ctx)
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend(ctx, blocker)
       implicit0(cache: TrackerCache[RunF])         = TrackerCache.create[InitF, RunF]

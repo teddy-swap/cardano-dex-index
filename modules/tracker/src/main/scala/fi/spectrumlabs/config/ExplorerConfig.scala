@@ -5,4 +5,4 @@ import derevo.pureconfig.pureconfigReader
 import tofu.logging.derivation.loggable
 
 @derive(pureconfigReader, loggable)
-final case class ExplorerConfig (url: String)
+final case class ExplorerConfig(url: String)

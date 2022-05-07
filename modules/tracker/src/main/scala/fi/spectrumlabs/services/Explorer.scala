@@ -9,7 +9,7 @@ import io.circe.jawn.CirceSupportParser
 import jawnfs2._
 import org.typelevel.jawn.Facade
 import sttp.capabilities.fs2.Fs2Streams
-import sttp.client3.{SttpBackend, UriContext, asStreamAlwaysUnsafe, basicRequest}
+import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext}
 import tofu.fs2.LiftStream
 import tofu.kernel.types.MonadThrow
 
@@ -24,7 +24,8 @@ object Explorer {
     cats.tagless.Derive.functorK[Mod]
   }
 
-  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](implicit
+  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](
+    implicit
     backend: SttpBackend[F, Fs2Streams[F]]
   ): Explorer[S, F] =
     functorK.mapK(new Impl)(LiftStream[S, F].liftF)
