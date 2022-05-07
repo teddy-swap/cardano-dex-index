@@ -7,7 +7,6 @@ import cats.{~>, FlatMap, Functor, Monad}
 import fi.spectrumlabs.config.{KafkaConfig, ProducerConfig}
 import fs2._
 import fs2.kafka._
-import org.ergoplatform.dex.configs.{KafkaConfig, ProducerConfig}
 import tofu.higherKind.Embed
 import tofu.lift.IsoK
 import tofu.logging.Logs
@@ -52,7 +51,8 @@ object Producer {
     G[_]: Monad: KafkaConfig.Has,
     K: RecordSerializer[I, *],
     V: RecordSerializer[I, *]
-  ](conf: ProducerConfig)(implicit
+  ](conf: ProducerConfig)(
+    implicit
     isoKFG: IsoK[F, Stream[G, *]],
     isoKGI: IsoK[G, I]
   ): Resource[I, Producer[K, V, F]] =
@@ -74,8 +74,9 @@ object Producer {
   ) extends Producer[K, V, Stream[F, *]] {
 
     def produce: Pipe[F, Record[K, V], Unit] =
-      _.map { case Record(k, v) =>
-        ProducerRecords.one(ProducerRecord(conf.topicId.value, k, v))
+      _.map {
+        case Record(k, v) =>
+          ProducerRecords.one(ProducerRecord(conf.topicId.value, k, v))
       }.evalMap(kafkaProducer.produce).mapAsync(conf.parallelism)(identity).drain
   }
 

@@ -17,7 +17,7 @@ trait Explorer[S[_], F[_]] {
   def streamTransactions(offset: Int, limit: Int): S[Transaction]
 }
 
-object ExplorerService {
+object Explorer {
 
   implicit def functorK[F[_]]: FunctorK[Explorer[*[_], F]] = {
     type Mod[S[_]] = Explorer[S, F]

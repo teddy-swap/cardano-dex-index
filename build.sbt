@@ -65,7 +65,12 @@ lazy val tracker = project
     Libraries.kafka,
     Libraries.derevoPureconfig,
     Libraries.tofuLogging,
-    Libraries.newtype
+    Libraries.newtype,
+    Libraries.enumeratum,
+    Libraries.enumeratumCirce,
+    Libraries.mouse,
+    Libraries.tofuZio,
+    Libraries.pureconfig
   ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)

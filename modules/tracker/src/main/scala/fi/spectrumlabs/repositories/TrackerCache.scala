@@ -4,6 +4,7 @@ import cats.Functor
 import dev.profunktor.redis4cats.RedisCommands
 import cats.syntax.functor._
 import derevo.derive
+import fi.spectrumlabs.models.Offset
 import tofu.higherKind.derived.representableK
 
 @derive(representableK)
