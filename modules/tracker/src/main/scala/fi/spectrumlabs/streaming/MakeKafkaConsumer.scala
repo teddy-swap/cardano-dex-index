@@ -10,6 +10,7 @@ import tofu.syntax.context._
 import tofu.syntax.embed._
 import tofu.syntax.monadic._
 import tofu.syntax.unlift._
+import fi.spectrumlabs.config.{ConsumerConfig, KafkaConfig}
 
 /** Kafka consumer instance maker.
  */

@@ -13,24 +13,24 @@ import sttp.client3.{SttpBackend, UriContext, asStreamAlwaysUnsafe, basicRequest
 import tofu.fs2.LiftStream
 import tofu.kernel.types.MonadThrow
 
-trait ExplorerService[S[_], F[_]] {
+trait Explorer[S[_], F[_]] {
   def streamTransactions(offset: Int, limit: Int): S[Transaction]
 }
 
 object ExplorerService {
 
-  implicit def functorK[F[_]]: FunctorK[ExplorerService[*[_], F]] = {
-    type Mod[S[_]] = ExplorerService[S, F]
+  implicit def functorK[F[_]]: FunctorK[Explorer[*[_], F]] = {
+    type Mod[S[_]] = Explorer[S, F]
     cats.tagless.Derive.functorK[Mod]
   }
 
   def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](implicit
     backend: SttpBackend[F, Fs2Streams[F]]
-  ): ExplorerService[S, F] =
+  ): Explorer[S, F] =
     functorK.mapK(new Impl)(LiftStream[S, F].liftF)
 
   private final class Impl[F[_]: MonadThrow](implicit backend: SttpBackend[F, Fs2Streams[F]])
-    extends ExplorerService[Stream[F, *], F] {
+    extends Explorer[Stream[F, *], F] {
 
     implicit private val facade: Facade[Json] = new CirceSupportParser(None, allowDuplicateKeys = false).facade
 
