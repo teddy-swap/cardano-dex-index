@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object V {
-    val tofu            = "0.10.3"
+    val tofu            = "0.10.2"
     val derevo          = "0.12.5"
     val catsEffect      = "2.5.3"
     val doobie          = "0.13.4"

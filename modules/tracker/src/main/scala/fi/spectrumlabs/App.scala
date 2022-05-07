@@ -7,13 +7,13 @@ import dev.profunktor.redis4cats.codecs.splits.SplitEpi
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import dev.profunktor.redis4cats.connection.RedisClient
 import dev.profunktor.redis4cats.data.RedisCodec
-import fi.spectrumlabs.config.ConfigBundle._
 import fi.spectrumlabs.config.{AppContext, ConfigBundle}
 import fi.spectrumlabs.models.Transaction
 import fi.spectrumlabs.programs.TrackerProgram
 import fi.spectrumlabs.repositories.TrackerCache
-import fi.spectrumlabs.services.Explorer
+import fi.spectrumlabs.services.{Explorer, Filter}
 import fi.spectrumlabs.streaming.Producer
+import fs2.Chunk
 import io.lettuce.core.{ClientOptions, TimeoutOptions}
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.client3.SttpBackend
@@ -41,15 +41,16 @@ object App extends EnvApp[AppContext] {
       blocker <- Blocker[InitF]
       configs <- Resource.eval(ConfigBundle.load[InitF](configPathOpt, blocker))
       ctx                                   = AppContext.init(configs)
-      implicit0(ul: Unlift[RunF, InitF])    = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
       implicit0(isoKRun: IsoK[RunF, InitF]) = IsoK.byFunK(wr.runContextK(ctx))(wr.liftF)
+      producer <- Producer.make[InitF, StreamF, RunF, String, Transaction](configs.producer)
+      implicit0(ul: Unlift[RunF, InitF])    = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
       implicit0(redis: RedisCommands[RunF, String, Int])      <- mkRedis(ctx)
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend(ctx, blocker)
       implicit0(cache: TrackerCache[RunF])         = TrackerCache.create[InitF, RunF]
       implicit0(explorer: Explorer[StreamF, RunF]) = Explorer.create[StreamF, RunF]
-      producer <- Producer.make[InitF, StreamF, RunF, String, Transaction](configs.producer)
-      implicit0(tracker: TrackerProgram[StreamF]) = TrackerProgram.create[StreamF, RunF, List](producer)
-      _ <- Resource.eval(tracker.run.compile.drain)
+      implicit0(filter: Filter[RunF]) = Filter.create[RunF]
+      implicit0(tracker: TrackerProgram[StreamF]) = TrackerProgram.create[StreamF, RunF, Chunk](producer)
+      _ <- Resource.eval(tracker.run.compile.drain).mapK(ul.liftF)
     } yield ()
 
   private def mkRedis(

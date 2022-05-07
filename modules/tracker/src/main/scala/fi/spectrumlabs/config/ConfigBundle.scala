@@ -2,7 +2,7 @@ package fi.spectrumlabs.config
 
 import derevo.derive
 import derevo.pureconfig.pureconfigReader
-import tofu.WithContext
+import tofu.Context
 import tofu.logging.derivation.loggable
 import tofu.optics.macros.{promote, ClassyOptics}
 
@@ -16,4 +16,4 @@ final case class ConfigBundle(
   @promote kafka: KafkaConfig
 )
 
-object ConfigBundle extends WithContext.Companion[ConfigBundle] with ConfigBundleCompanion[ConfigBundle]
+object ConfigBundle extends Context.Companion[ConfigBundle] with ConfigBundleCompanion[ConfigBundle]

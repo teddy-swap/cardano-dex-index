@@ -1,7 +1,7 @@
 package fi.spectrumlabs.config
 
 import derevo.derive
-import tofu.WithContext
+import tofu.Context
 import tofu.logging.derivation.{hidden, loggable}
 import tofu.optics.macros.{promote, ClassyOptics}
 
@@ -11,7 +11,7 @@ final case class AppContext(
   @promote @hidden config: ConfigBundle,
 )
 
-object AppContext extends WithContext.Companion[AppContext] {
+object AppContext extends Context.Companion[AppContext] {
 
   def init(configs: ConfigBundle): AppContext =
     AppContext(configs)

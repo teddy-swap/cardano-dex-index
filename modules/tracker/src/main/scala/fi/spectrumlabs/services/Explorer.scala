@@ -9,9 +9,9 @@ import io.circe.jawn.CirceSupportParser
 import jawnfs2._
 import org.typelevel.jawn.Facade
 import sttp.capabilities.fs2.Fs2Streams
-import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext}
+import sttp.client3.{SttpBackend, UriContext, asStreamAlwaysUnsafe, basicRequest}
+import tofu.MonadThrow
 import tofu.fs2.LiftStream
-import tofu.kernel.types.MonadThrow
 
 trait Explorer[S[_], F[_]] {
   def streamTransactions(offset: Int, limit: Int): S[Transaction]
