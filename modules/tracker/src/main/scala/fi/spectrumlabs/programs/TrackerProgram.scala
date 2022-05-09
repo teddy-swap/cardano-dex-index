@@ -53,6 +53,7 @@ object TrackerProgram {
         .streamTransactions(offset, 50)
         .groupWithin(10, 10.seconds) // from config
         .evalMap { batch =>
+          println(s"Got batch: ${batch.toString}")
           filter
             .filter(batch.toList)
             .map(_.map { txn =>

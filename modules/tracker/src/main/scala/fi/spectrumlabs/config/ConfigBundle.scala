@@ -2,18 +2,18 @@ package fi.spectrumlabs.config
 
 import derevo.derive
 import derevo.pureconfig.pureconfigReader
-import tofu.Context
+import tofu.WithContext
 import tofu.logging.derivation.loggable
 import tofu.optics.macros.{promote, ClassyOptics}
 
-@derive(loggable, pureconfigReader)
 @ClassyOptics
+@derive(loggable, pureconfigReader)
 final case class ConfigBundle(
-  @promote explorer: ExplorerConfig,
-  @promote tracker: TrackerConfig,
-  @promote redis: RedisConfig,
-  @promote producer: ProducerConfig,
+  explorer: ExplorerConfig,
+  tracker: TrackerConfig,
+  redis: RedisConfig,
+  producer: ProducerConfig,
   @promote kafka: KafkaConfig
 )
 
-object ConfigBundle extends Context.Companion[ConfigBundle] with ConfigBundleCompanion[ConfigBundle]
+object ConfigBundle extends WithContext.Companion[ConfigBundle] with ConfigBundleCompanion[ConfigBundle]

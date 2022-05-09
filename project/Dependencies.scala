@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object V {
-    val tofu            = "0.10.2"
+    val tofu            = "0.10.6"
     val derevo          = "0.12.5"
     val catsEffect      = "2.5.3"
     val doobie          = "0.13.4"
@@ -15,8 +15,8 @@ object Dependencies {
     val enumeratumCirce = "1.7.0"
     val sttpVersion     = "3.3.11"
     val redis           = "0.14.0"
-    val jawnFs2Version     = "1.0.0"
-    val fs2KafkaVersion    = "1.4.1"
+    val jawnFs2Version  = "1.0.0"
+    val fs2KafkaVersion = "1.4.1"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -65,9 +65,9 @@ object Dependencies {
     val enumeratum      = "com.beachape" %% "enumeratum"       % V.enumeratum
     val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % V.enumeratumCirce
 
-    val redis4catsEffects = "dev.profunktor" %% "redis4cats-effects" % V.redis
-    val jawnFs2 = "org.http4s" %% "jawn-fs2" % V.jawnFs2Version
-    val kafka = "com.github.fd4s"           %% "fs2-kafka"        % V.fs2KafkaVersion
+    val redis4catsEffects = "dev.profunktor"  %% "redis4cats-effects" % V.redis
+    val jawnFs2           = "org.http4s"      %% "jawn-fs2"           % V.jawnFs2Version
+    val kafka             = "com.github.fd4s" %% "fs2-kafka"          % V.fs2KafkaVersion
   }
 
   object CompilerPlugins {

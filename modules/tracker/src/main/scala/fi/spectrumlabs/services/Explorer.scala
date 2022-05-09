@@ -9,7 +9,7 @@ import io.circe.jawn.CirceSupportParser
 import jawnfs2._
 import org.typelevel.jawn.Facade
 import sttp.capabilities.fs2.Fs2Streams
-import sttp.client3.{SttpBackend, UriContext, asStreamAlwaysUnsafe, basicRequest}
+import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext}
 import tofu.MonadThrow
 import tofu.fs2.LiftStream
 
