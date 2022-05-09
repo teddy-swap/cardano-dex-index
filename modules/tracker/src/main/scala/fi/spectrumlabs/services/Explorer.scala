@@ -2,6 +2,7 @@ package fi.spectrumlabs.services
 
 import cats.syntax.functor._
 import cats.tagless.FunctorK
+import fi.spectrumlabs.config.ExplorerConfig
 import fi.spectrumlabs.models.Transaction
 import fs2.Stream
 import io.circe.Json
@@ -10,6 +11,7 @@ import jawnfs2._
 import org.typelevel.jawn.Facade
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext}
+import sttp.model.Uri.Segment
 import tofu.MonadThrow
 import tofu.fs2.LiftStream
 
@@ -24,23 +26,24 @@ object Explorer {
     cats.tagless.Derive.functorK[Mod]
   }
 
-  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](
+  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](config: ExplorerConfig)(
     implicit
     backend: SttpBackend[F, Fs2Streams[F]]
   ): Explorer[S, F] =
-    functorK.mapK(new Impl)(LiftStream[S, F].liftF)
+    functorK.mapK(new Impl(config))(LiftStream[S, F].liftF)
 
-  private final class Impl[F[_]: MonadThrow](implicit backend: SttpBackend[F, Fs2Streams[F]])
+  private final class Impl[F[_]: MonadThrow](config: ExplorerConfig)(implicit backend: SttpBackend[F, Fs2Streams[F]])
     extends Explorer[Stream[F, *], F] {
 
     implicit private val facade: Facade[Json] = new CirceSupportParser(None, allowDuplicateKeys = false).facade
 
-    // https://testnet-api.quickblue.io/v1/transactions/stream?offset=0&limit=500&ordering=asc
     def streamTransactions(offset: Int, limit: Int): Stream[F, Transaction] = {
+      println(s"Going to request next txns")
       val req =
         basicRequest
           .get(
-            uri"https://testnet-api.quickblue.io/v1/transactions/stream"
+            uri"${config.url}"
+              .withPathSegment(Segment("v1/transactions/stream", identity))
               .addParams("offset" -> s"$offset", "limit" -> s"$limit", "ordering" -> "asc")
           )
           .response(asStreamAlwaysUnsafe(Fs2Streams[F]))

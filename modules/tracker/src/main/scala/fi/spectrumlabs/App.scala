@@ -47,9 +47,12 @@ object App extends EnvApp[AppContext] {
       implicit0(redis: RedisCommands[RunF, String, Int])      <- mkRedis(ctx)
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend(ctx, blocker)
       implicit0(cache: TrackerCache[RunF])         = TrackerCache.create[InitF, RunF]
-      implicit0(explorer: Explorer[StreamF, RunF]) = Explorer.create[StreamF, RunF]
+      implicit0(explorer: Explorer[StreamF, RunF]) = Explorer.create[StreamF, RunF](configs.explorer)
       implicit0(filter: Filter[RunF])              = Filter.create[RunF]
-      implicit0(tracker: TrackerProgram[StreamF])  = TrackerProgram.create[StreamF, RunF, Chunk](producer)
+      implicit0(tracker: TrackerProgram[StreamF]) = TrackerProgram.create[StreamF, RunF, Chunk](
+        producer,
+        configs.tracker
+      )
       _ <- Resource.eval(tracker.run.compile.drain).mapK(ul.liftF)
     } yield ()
 
