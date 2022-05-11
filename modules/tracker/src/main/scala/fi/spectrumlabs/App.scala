@@ -7,7 +7,7 @@ import dev.profunktor.redis4cats.connection.RedisClient
 import dev.profunktor.redis4cats.data.RedisCodec
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import fi.spectrumlabs.config.{AppContext, ConfigBundle}
-import fi.spectrumlabs.models.Transaction
+import fi.spectrumlabs.core.models.Transaction
 import fi.spectrumlabs.programs.TrackerProgram
 import fi.spectrumlabs.repositories.TrackerCache
 import fi.spectrumlabs.services.{Explorer, Filter}

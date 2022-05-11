@@ -1,4 +1,4 @@
-package fi.spectrumlabs.models
+package fi.spectrumlabs.core.models
 
 import cats.syntax.either._
 import io.circe.{Decoder, Encoder}

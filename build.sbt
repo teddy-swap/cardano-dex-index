@@ -43,6 +43,16 @@ lazy val core = project
   .in(file("modules/core"))
   .withId("cardano-markets-core")
   .settings(name := "cardano-markets-core")
+  .settings(libraryDependencies ++= List(
+    Libraries.derevoCirce,
+    Libraries.tofuDerivation,
+    Libraries.tofuDoobie,
+    Libraries.newtype,
+    Libraries.tofuLogging,
+    Libraries.enumeratum,
+    Libraries.kafka,
+    Libraries.circeParse
+  ))
   .settings(commonSettings)
 
 lazy val tracker = project
@@ -88,6 +98,16 @@ lazy val dbWriter = project
   .withId("cardano-db-writer")
   .settings(name := "cardano-db-writer")
   .settings(commonSettings)
+  .settings(libraryDependencies ++= List(
+    Libraries.doobiePg,
+    Libraries.doobieHikari,
+    Libraries.doobieCore,
+    Libraries.derevoPureconfig,
+    Libraries.tofuZio,
+    Libraries.pureconfig,
+    Libraries.kafka,
+    Libraries.tofuFs2
+  ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 

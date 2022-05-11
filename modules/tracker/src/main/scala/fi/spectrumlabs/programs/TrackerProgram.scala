@@ -3,7 +3,8 @@ package fi.spectrumlabs.programs
 import cats.syntax.foldable._
 import cats.{Foldable, FunctorFilter, Monad}
 import fi.spectrumlabs.config.TrackerConfig
-import fi.spectrumlabs.models.Transaction
+import fi.spectrumlabs.core.models.Transaction
+
 import fi.spectrumlabs.repositories.TrackerCache
 import fi.spectrumlabs.services.{Explorer, Filter}
 import fi.spectrumlabs.streaming.{Producer, Record}

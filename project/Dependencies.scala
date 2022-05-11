@@ -17,6 +17,7 @@ object Dependencies {
     val redis           = "0.14.0"
     val jawnFs2Version  = "1.0.0"
     val fs2KafkaVersion = "1.4.1"
+    val circeVersion = "0.14.1"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -32,6 +33,8 @@ object Dependencies {
     val tofuStreams    = "tf.tofu" %% "tofu-streams"      % V.tofu
     val tofuFs2        = "tf.tofu" %% "tofu-fs2-interop"  % V.tofu
     val tofuZio        = "tf.tofu" %% "tofu-zio-interop"  % V.tofu
+
+    val circeParse = "io.circe" %% "circe-parser" % V.circeVersion
 
     val derevoCats        = "tf.tofu" %% "derevo-cats"              % V.derevo
     val derevoCatsTagless = "tf.tofu" %% "derevo-cats-tagless"      % V.derevo

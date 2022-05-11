@@ -1,7 +1,7 @@
 package fi.spectrumlabs.services
 
 import cats.Applicative
-import fi.spectrumlabs.models.Transaction
+import fi.spectrumlabs.core.models.Transaction
 import cats.syntax.applicative._
 
 trait Filter[F[_]] {

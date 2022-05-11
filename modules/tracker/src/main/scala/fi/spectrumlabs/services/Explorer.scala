@@ -3,7 +3,7 @@ package fi.spectrumlabs.services
 import cats.syntax.functor._
 import cats.tagless.FunctorK
 import fi.spectrumlabs.config.ExplorerConfig
-import fi.spectrumlabs.models.Transaction
+import fi.spectrumlabs.core.models.Transaction
 import fs2.Stream
 import io.circe.Json
 import io.circe.jawn.CirceSupportParser

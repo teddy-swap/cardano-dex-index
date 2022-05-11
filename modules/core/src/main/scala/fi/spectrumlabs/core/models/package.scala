@@ -1,4 +1,4 @@
-package fi.spectrumlabs
+package fi.spectrumlabs.core.models
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
