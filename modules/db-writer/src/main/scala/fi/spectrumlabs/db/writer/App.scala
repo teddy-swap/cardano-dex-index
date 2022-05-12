@@ -1,12 +1,13 @@
 package fi.spectrumlabs.db.writer
 
+import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
 import fi.spectrumlabs.core.models.Transaction
 import fi.spectrumlabs.db.writer.config.{AppContext, ConfigBundle, ConsumerConfig, KafkaConfig}
-import fi.spectrumlabs.db.writer.models.{AnotherExampleData, ExampleData}
+import fi.spectrumlabs.db.writer.models.{ExampleData}
 import fi.spectrumlabs.db.writer.persistence.{Persist, PersistBundle}
-import fi.spectrumlabs.db.writer.programs.{Handler, WriterProgram}
-import fi.spectrumlabs.db.writer.schema.{AnotherExampleSchema, ExampleSchema, Schema, SchemaBundle}
+import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
+import fi.spectrumlabs.db.writer.schema.{ExampleSchema, Schema, SchemaBundle}
 import fi.spectrumlabs.db.writer.streaming.{Consumer, MakeKafkaConsumer}
 import fs2.Chunk
 import fs2.kafka.RecordDeserializer
@@ -18,10 +19,10 @@ import tofu.logging.derivation.loggable.generate
 import zio.interop.catz._
 import zio.{ExitCode, URIO, ZIO}
 import tofu.doobie.log.EmbeddableLogHandler
-import fi.spectrumlabs.db.writer.transformers.Transformer.instances._
 import tofu.fs2Instances._
 import zio.interop.catz._
 import doobie.implicits._
+import fi.spectrumlabs.db.writer
 
 object App extends EnvApp[AppContext] {
 
@@ -44,18 +45,17 @@ object App extends EnvApp[AppContext] {
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
 
       implicit0(consumer: Consumer[String, Transaction, StreamF, RunF]) = makeConsumer[String, Transaction](
-                                                                            configs.tnxConsumer,
-                                                                            configs.kafka
-                                                                          )
+        configs.tnxConsumer,
+        configs.kafka
+      )
 
       schemaBundle = SchemaBundle.create
 
-      persistBundle = PersistBundle.create[xa.DB](schemaBundle)
+      persistBundle: PersistBundle[RunF] = PersistBundle.create[xa.DB, RunF](schemaBundle, xa.trans)
 
-      handler: Handler[Transaction, ExampleData, StreamF] = Handler
-        .create[Transaction, ExampleData, StreamF, RunF, xa.DB, Chunk](consumer, persistBundle.examplePersist, xa)
+      handlersBundle = mkHandlersBundle(consumer, persistBundle)
 
-      program = WriterProgram.create[StreamF, RunF](handler)
+      program = WriterProgram.create[StreamF, RunF](handlersBundle)
 
       _ <- Resource.eval(program.run).mapK(ul.liftF)
     } yield ()
@@ -67,4 +67,14 @@ object App extends EnvApp[AppContext] {
     implicit val maker = MakeKafkaConsumer.make[InitF, RunF, K, V](kafka)
     Consumer.make[StreamF, RunF, K, V](conf)
   }
+
+  private def mkHandlersBundle(
+    consumer: Consumer[String, Transaction, StreamF, RunF],
+    persistBundle: PersistBundle[RunF]
+  ): HandlersBundle[StreamF] = HandlersBundle(
+    NonEmptyList.one(
+      Handler
+        .create[Transaction, ExampleData, StreamF, RunF, Chunk](consumer, persistBundle.examplePersist)
+    )
+  )
 }

@@ -1,27 +1,19 @@
 package fi.spectrumlabs.db.writer.persistence
 
-import cats.FlatMap
-import fi.spectrumlabs.core.models.Transaction
-import fi.spectrumlabs.db.writer.models.{AnotherExampleData, ExampleData}
-import fi.spectrumlabs.db.writer.schema.{Schema, SchemaBundle}
+import cats.{~>, Applicative, FlatMap}
+import fi.spectrumlabs.db.writer.models.ExampleData
+import fi.spectrumlabs.db.writer.schema.SchemaBundle
 import tofu.doobie.LiftConnectionIO
-import fi.spectrumlabs.db.writer.transformers.Transformer.instances._
 import tofu.doobie.log.EmbeddableLogHandler
-import doobie.implicits._
-import doobie._
+import tofu.doobie.transactor.Txr
 
-final case class PersistBundle[D[_]](
-  examplePersist: Persist[Transaction, Schema[ExampleData], D],
-  anotherExamplePersist: Persist[Transaction, Schema[AnotherExampleData], D]
-)
+final case class PersistBundle[F[_]](examplePersist: Persist[ExampleData, F])
 
 object PersistBundle {
 
-  def create[D[_]: FlatMap: LiftConnectionIO](schema: SchemaBundle)(implicit elh: EmbeddableLogHandler[D]) = {
-    import schema._
-    PersistBundle(
-      Persist.create[Transaction, ExampleData, D](schema.exampleSchema),
-      Persist.create[Transaction, AnotherExampleData, D](schema.anotherExampleSchema)
-    )
-  }
+  def create[D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](
+    bundle: SchemaBundle,
+    xa: D ~> F
+  )(implicit elh: EmbeddableLogHandler[D]): PersistBundle[F] =
+    PersistBundle(Persist.create[ExampleData, D, F](bundle.exampleSchema, xa))
 }
