@@ -7,9 +7,11 @@ import tofu.logging.derivation.loggable
 import scala.concurrent.duration.FiniteDuration
 
 @derive(loggable, pureconfigReader)
-final case class PgConfig(url: String,
-                          user: String,
-                          pass: String,
-                          connectionTimeout: FiniteDuration,
-                          minConnections: Int,
-                          maxConnections: Int)
+final case class PgConfig(
+  url: String,
+  user: String,
+  pass: String,
+  connectionTimeout: FiniteDuration,
+  minConnections: Int,
+  maxConnections: Int
+)

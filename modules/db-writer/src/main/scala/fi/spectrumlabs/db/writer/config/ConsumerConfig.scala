@@ -8,9 +8,9 @@ import tofu.logging.derivation.loggable
 
 @derive(pureconfigReader, loggable)
 final case class ConsumerConfig(
-                                 groupId: GroupId,
-                                 clientId: ClientId,
-                                 topicId: TopicId
-                               )
+  groupId: GroupId,
+  clientId: ClientId,
+  topicId: TopicId
+)
 
 object ConsumerConfig extends Context.Companion[ConsumerConfig]

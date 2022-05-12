@@ -106,7 +106,8 @@ lazy val dbWriter = project
     Libraries.tofuZio,
     Libraries.pureconfig,
     Libraries.kafka,
-    Libraries.tofuFs2
+    Libraries.tofuFs2,
+    Libraries.mouse
   ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)

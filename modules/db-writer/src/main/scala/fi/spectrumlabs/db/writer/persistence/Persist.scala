@@ -4,6 +4,7 @@ import cats.FlatMap
 import cats.data.NonEmptyList
 import cats.tagless.syntax.functorK._
 import doobie.ConnectionIO
+import doobie.util.Write
 import doobie.util.log.LogHandler
 import fi.spectrumlabs.db.writer.schema.Schema
 import fi.spectrumlabs.db.writer.transformers.Transformer
@@ -12,7 +13,7 @@ import tofu.doobie.log.EmbeddableLogHandler
 import tofu.higherKind.RepresentableK
 
 trait Persist[A, B, D[_]] {
-  def persist(inputs: NonEmptyList[A])(implicit schema: Schema[B], transformer: Transformer[A, B]): D[Int]
+  def persist(inputs: NonEmptyList[A]): D[Int]
 }
 
 object Persist {
@@ -22,14 +23,19 @@ object Persist {
     tofu.higherKind.derived.genRepresentableK[Repr]
   }
 
-  def create[A, B, D[_]: FlatMap: LiftConnectionIO](implicit elh: EmbeddableLogHandler[D]): Persist[A, B, D] =
-    elh.embed(implicit __ => new Impl[A, B]().mapK(LiftConnectionIO[D].liftF))
+  def create[A, B: Write, D[_]: FlatMap: LiftConnectionIO](schema: Schema[B])(
+    implicit
+    transformer: Transformer[A, B],
+    elh: EmbeddableLogHandler[D]
+  ): Persist[A, Schema[B], D] =
+    elh.embed(implicit __ => new Impl[A, B](schema).mapK(LiftConnectionIO[D].liftF))
 
-  private final class Impl[A, B](implicit lh: LogHandler) extends Persist[A, B, ConnectionIO] {
+  private final class Impl[A, B: Write](schema: Schema[B])(implicit transformer: Transformer[A, B], lh: LogHandler)
+    extends Persist[A, Schema[B], ConnectionIO] {
 
     def persist(
       inputs: NonEmptyList[A]
-    )(implicit schema: Schema[B], transformer: Transformer[A, B]): ConnectionIO[Int] = {
+    ): ConnectionIO[Int] = {
       val toInsert = inputs.map(transformer.transform).toList
       schema.insertNoConflict.updateMany(toInsert)
     }

@@ -4,7 +4,7 @@ import cats.Functor
 import cats.data.Chain
 
 /** A message associated with some offset that can be committed.
- */
+  */
 trait Committable[K, V, O, F[_]] {
 
   def key: K

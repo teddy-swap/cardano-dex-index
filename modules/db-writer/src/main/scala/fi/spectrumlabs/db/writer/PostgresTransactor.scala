@@ -8,26 +8,26 @@ import fi.spectrumlabs.db.writer.config.PgConfig
 object PostgresTransactor {
 
   def make[F[_]: Async: ContextShift](
-                                       poolName: String,
-                                       config: PgConfig
-                                     ): Resource[F, HikariTransactor[F]] =
+    poolName: String,
+    config: PgConfig
+  ): Resource[F, HikariTransactor[F]] =
     for {
-      cp <- ExecutionContexts.fixedThreadPool(size = 16)
+      cp      <- ExecutionContexts.fixedThreadPool(size = 16)
       blocker <- Blocker[F]
       xa <- HikariTransactor.newHikariTransactor[F](
-        driverClassName = "org.postgresql.Driver",
-        config.url,
-        config.user,
-        config.pass,
-        cp,
-        blocker
-      )
+             driverClassName = "org.postgresql.Driver",
+             config.url,
+             config.user,
+             config.pass,
+             cp,
+             blocker
+           )
       _ <- Resource.eval(configure(xa)(poolName, config))
     } yield xa
 
   private def configure[F[_]: Sync](
-                                     xa: HikariTransactor[F]
-                                   )(name: String, config: PgConfig): F[Unit] =
+    xa: HikariTransactor[F]
+  )(name: String, config: PgConfig): F[Unit] =
     xa.configure { c =>
       Sync[F].delay {
         c.setAutoCommit(false)
