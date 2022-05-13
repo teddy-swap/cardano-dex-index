@@ -66,3 +66,5 @@ create unique index tx_in_id on input (id);
 
 create unique index redeemer_tx_in_id on redeemer (tx_in_id);
 create unique index redeemer_id on redeemer (id);
+
+create unique index tx_out_pcred on output (payment_cred);
