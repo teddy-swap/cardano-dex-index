@@ -4,10 +4,9 @@ import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
 import fi.spectrumlabs.core.models.Transaction
 import fi.spectrumlabs.db.writer.config.{AppContext, ConfigBundle, ConsumerConfig, KafkaConfig}
-import fi.spectrumlabs.db.writer.models.{ExampleData}
 import fi.spectrumlabs.db.writer.persistence.{Persist, PersistBundle}
 import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
-import fi.spectrumlabs.db.writer.schema.{ExampleSchema, Schema, SchemaBundle}
+import fi.spectrumlabs.db.writer.schema.{Schema, SchemaBundle}
 import fi.spectrumlabs.db.writer.streaming.{Consumer, MakeKafkaConsumer}
 import fs2.Chunk
 import fs2.kafka.RecordDeserializer
@@ -53,11 +52,10 @@ object App extends EnvApp[AppContext] {
 
       persistBundle: PersistBundle[RunF] = PersistBundle.create[xa.DB, RunF](schemaBundle, xa.trans)
 
-      handlersBundle = mkHandlersBundle(consumer, persistBundle)
+      handler = Handler.create[StreamF, RunF, Chunk](consumer, persistBundle)
 
-      program = WriterProgram.create[StreamF, RunF](handlersBundle)
 
-      _ <- Resource.eval(program.run).mapK(ul.liftF)
+      _ <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
     } yield ()
 
   private def makeConsumer[K: RecordDeserializer[RunF, *], V: RecordDeserializer[RunF, *]](
@@ -67,14 +65,4 @@ object App extends EnvApp[AppContext] {
     implicit val maker = MakeKafkaConsumer.make[InitF, RunF, K, V](kafka)
     Consumer.make[StreamF, RunF, K, V](conf)
   }
-
-  private def mkHandlersBundle(
-    consumer: Consumer[String, Transaction, StreamF, RunF],
-    persistBundle: PersistBundle[RunF]
-  ): HandlersBundle[StreamF] = HandlersBundle(
-    NonEmptyList.one(
-      Handler
-        .create[Transaction, ExampleData, StreamF, RunF, Chunk](consumer, persistBundle.examplePersist)
-    )
-  )
 }

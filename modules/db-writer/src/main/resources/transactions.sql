@@ -1,29 +1,27 @@
-create sequence txn_id_seq;
-create sequence output_id_seq;
-create sequence input_id_seq;
-create sequence redeemer_id_seq;
+create sequence if not exists txn_id_seq;
+create sequence if not exists output_id_seq;
+create sequence if not exists input_id_seq;
+create sequence if not exists redeemer_id_seq;
 
 create table if not exists transaction (
     id Integer not null default nextval('txn_id_seq'),
     block_hash Text not null,
-    block_index Integer not null,
-    global_index Integer not null,
+    block_index BIGINT not null,
     hash Text not null,
     invalid_before BIGINT default null,
     invalid_hereafter BIGINT default null,
     metadata Jsonb default null,
     size Integer not null,
-    primary key (id)
+    primary key (hash, block_index)
 );
 
 create table if not exists output (
     id Integer not null default nextval('output_id_seq'),
-    tx_id Integer not null references transaction (id),
+    tx_hash Text ,
+    tx_index BIGINT,
     ref Text not null,
     block_hash Text not null,
-    tx_hash Text not null,
     index Integer not null,
-    global_index Integer not null,
     addr Text not null,
     raw_addr Text not null,
     payment_cred Text default null,
@@ -32,19 +30,23 @@ create table if not exists output (
     data Jsonb default null,
     data_bin Text default null,
     spent_by_tx_hash Text default null,
-    primary key (id)
+    primary key (ref, index)
 );
 
 create table if not exists input (
     id Integer not null default nextval('input_id_seq'),
-    tx_id Integer not null references transaction (id),
-    tx_out_id Integer not null references output (id),
+    tx_hash Text not null,
+    tx_index BIGINT not null,
+    out_ref Text not null,
+    out_index Text not null,
+    redeemer_index Integer default null,
     primary key (id)
 );
 
 create table if not exists redeemer (
     id Integer not null default nextval('redeemer_id_seq'),
-    tx_in_id Integer not null references input (id),
+    tx_hash Text not null,
+    tx_index BIGINT not null,
     unit_mem Integer not null,
     unit_step Integer not null,
     fee Integer not null,
@@ -56,15 +58,15 @@ create table if not exists redeemer (
     primary key (id)
 );
 
-create unique index tx_id on transaction (id);
+create unique index if not exists tx_id on transaction (hash, block_index);
 
-create unique index tx_out_tx_id on output (tx_id);
-create unique index tx_out_id on output (id);
+create unique index if not exists tx_out_tx_id on output (tx_hash, tx_index);
+create unique index if not exists tx_out_pcred on output (payment_cred);
 
-create unique index tx_in_tx_id on input (tx_id);
-create unique index tx_in_id on input (id);
+create unique index if not exists tx_in_tx_id on input (tx_hash, tx_index);
+create unique index if not exists tx_in_redeemer on input (redeemer_index);
+create unique index if not exists tx_in_out on input (out_ref, out_index);
 
-create unique index redeemer_tx_in_id on redeemer (tx_in_id);
-create unique index redeemer_id on redeemer (id);
+create unique index if not exists redeemer_tx on redeemer (tx_hash, tx_index);
+create unique index if not exists redeemer_id on redeemer (index);
 
-create unique index tx_out_pcred on output (payment_cred);

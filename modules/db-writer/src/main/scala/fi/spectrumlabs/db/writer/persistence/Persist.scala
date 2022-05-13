@@ -1,18 +1,15 @@
 package fi.spectrumlabs.db.writer.persistence
 
 import cats.data.NonEmptyList
-import cats.{~>, Applicative, FlatMap}
-import cats.syntax.applicative._
+import cats.tagless.syntax.functorK._
+import cats.{Applicative, FlatMap, ~>}
+import doobie.ConnectionIO
 import doobie.util.Write
 import doobie.util.log.LogHandler
 import fi.spectrumlabs.db.writer.schema.Schema
-import mouse.anyf._
 import tofu.doobie.LiftConnectionIO
 import tofu.doobie.log.EmbeddableLogHandler
-import tofu.doobie.transactor.Txr
 import tofu.higherKind.RepresentableK
-import cats.tagless.syntax.functorK._
-import doobie.ConnectionIO
 
 trait Persist[T, F[_]] {
   def persist(inputs: NonEmptyList[T]): F[Int]
@@ -37,6 +34,6 @@ object Persist {
   ) extends Persist[T, ConnectionIO] {
 
     def persist(inputs: NonEmptyList[T]): ConnectionIO[Int] =
-      (schema.insertNoConflict.updateMany(inputs))
+      schema.insertNoConflict.updateMany(inputs)
   }
 }
