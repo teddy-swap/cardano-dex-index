@@ -54,7 +54,6 @@ object App extends EnvApp[AppContext] {
 
       handler = Handler.create[StreamF, RunF, Chunk](consumer, persistBundle)
 
-
       _ <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
     } yield ()
 

@@ -40,18 +40,19 @@ object Handler {
         .flatMap { batch => //safe to nel
           println(s"Going to process batch: ${batch.size}")
           val batchList = NonEmptyList.fromListUnsafe(batch.toList.map(_.message))
-          def persist = for {
-            _ <- persistBundle.persistTxns.persist(batchList.map(Transaction.fromLedger(_)))
-            _ <- persistBundle.persistInputs.persist(
-                   NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Input.fromLedger(_)))
-                 )
-            _ <- persistBundle.persistOutputs.persist(
-                   NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Output.fromLedger(_)))
-                 )
-            _ <- persistBundle.persistRedeemers.persist(
-                   NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Redeemer.fromLedger(_)))
-                 )
-          } yield ()
+          def persist =
+            for {
+              _ <- persistBundle.persistTxns.persist(batchList.map(Transaction.fromLedger(_)))
+              _ <- persistBundle.persistInputs.persist(
+                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Input.fromLedger(_)))
+                  )
+              _ <- persistBundle.persistOutputs.persist(
+                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Output.fromLedger(_)))
+                  )
+              _ <- persistBundle.persistRedeemers.persist(
+                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Redeemer.fromLedger(_)))
+                  )
+            } yield ()
 
           eval(persist)
             .map(_ => println(s"Batch processed."))

@@ -17,5 +17,5 @@ object Input {
         i.out.index,
         i.redeemer.map(_.index)
       )
-    }
+  }
 }

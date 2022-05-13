@@ -27,5 +27,5 @@ object Transaction {
       in.invalidHereafter,
       in.metadata.map(_.asJson),
       in.size
-    )
+  )
 }

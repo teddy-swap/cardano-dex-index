@@ -2,7 +2,7 @@ package fi.spectrumlabs.db.writer.persistence
 
 import cats.data.NonEmptyList
 import cats.tagless.syntax.functorK._
-import cats.{Applicative, FlatMap, ~>}
+import cats.{~>, Applicative, FlatMap}
 import doobie.ConnectionIO
 import doobie.util.Write
 import doobie.util.log.LogHandler

@@ -37,5 +37,5 @@ object Redeemer {
           r.dataBin
         )
       }
-    }
+  }
 }
