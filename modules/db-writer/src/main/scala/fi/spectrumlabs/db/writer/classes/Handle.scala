@@ -16,7 +16,8 @@ object Handle {
   def createOne[A, B, F[_]: Functor](persist: Persist[B, F])(implicit fromLedger: FromLedger[A, B]): Handle[A, F] =
     new ImplOne[A, B, F](persist)
 
-  def createMany[A, B, F[_]: Applicative](persist: Persist[B, F])(implicit
+  def createMany[A, B, F[_]: Applicative](persist: Persist[B, F])(
+    implicit
     fromLedger: FromLedger[A, List[B]]
   ): Handle[A, F] =
     new ImplMany[A, B, F](persist)
@@ -28,7 +29,8 @@ object Handle {
       (in.map(fromLedger(_)) |> persist.persist).map(r => println(s"Handled $r elems."))
   }
 
-  private final class ImplMany[A, B, F[_]: Applicative](persist: Persist[B, F])(implicit
+  private final class ImplMany[A, B, F[_]: Applicative](persist: Persist[B, F])(
+    implicit
     fromLedger: FromLedger[A, List[B]]
   ) extends Handle[A, F] {
 
