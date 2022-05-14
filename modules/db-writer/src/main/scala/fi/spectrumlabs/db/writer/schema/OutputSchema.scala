@@ -8,9 +8,8 @@ class OutputSchema extends Schema[Output] {
   val fields: List[String] = List(
     "tx_hash",
     "tx_index",
-    "ref Text",
+    "ref",
     "block_hash",
-    "tx_hash",
     "index",
     "addr",
     "raw_addr",

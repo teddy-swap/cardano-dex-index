@@ -41,7 +41,7 @@ object App extends EnvApp[AppContext] {
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
       implicit0(consumer: Consumer[String, Tx, StreamF, RunF]) = makeConsumer[String, Tx](
-        configs.tnxConsumer,
+        configs.consumer,
         configs.kafka
       )
       implicit0(schemaBundle: SchemaBundle)         = SchemaBundle.create

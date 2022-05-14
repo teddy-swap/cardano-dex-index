@@ -8,6 +8,6 @@ import tofu.optics.macros.ClassyOptics
 
 @ClassyOptics
 @derive(loggable, pureconfigReader)
-final case class ConfigBundle(pg: PgConfig, tnxConsumer: ConsumerConfig, kafka: KafkaConfig)
+final case class ConfigBundle(pg: PgConfig, consumer: ConsumerConfig, kafka: KafkaConfig)
 
 object ConfigBundle extends WithContext.Companion[ConfigBundle] with ConfigBundleCompanion[ConfigBundle]
