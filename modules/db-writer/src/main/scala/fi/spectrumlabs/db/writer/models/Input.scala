@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models
 
-import fi.spectrumlabs.core.models.models.{OutRef, TxHash}
+import fi.spectrumlabs.core.models.{OutRef, TxHash}
 import fi.spectrumlabs.core.models.{Transaction => Tx}
 import fi.spectrumlabs.db.writer.classes.FromLedger
 

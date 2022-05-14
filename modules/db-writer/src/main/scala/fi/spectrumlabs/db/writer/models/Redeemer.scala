@@ -1,7 +1,7 @@
 package fi.spectrumlabs.db.writer.models
 
 import fi.spectrumlabs.core.models.ScriptPurpose
-import fi.spectrumlabs.core.models.models.{Bytea, Hash28, TxHash}
+import fi.spectrumlabs.core.models.{Bytea, Hash28, TxHash}
 import fi.spectrumlabs.db.writer.classes.FromLedger
 import io.circe.Json
 import fi.spectrumlabs.core.models.{Transaction => Tx}
@@ -11,7 +11,7 @@ final case class Redeemer(
   txIndex: Long,
   unitMem: Long,
   unitSteps: Long,
-  fee: BigInt,
+  fee: Long,
   purpose: ScriptPurpose,
   index: Int,
   scriptHash: Hash28,
@@ -29,7 +29,7 @@ object Redeemer {
           in.blockIndex,
           r.unitMem,
           r.unitSteps,
-          r.fee,
+          r.fee.toLong,
           r.purpose,
           r.index,
           r.scriptHash,

@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models
 
-import fi.spectrumlabs.core.models.models.{BlockHash, TxHash}
+import fi.spectrumlabs.core.models.{BlockHash, TxHash}
 import fi.spectrumlabs.db.writer.classes.FromLedger
 import io.circe.Json
 import fi.spectrumlabs.core.models.{Transaction => Tx}
@@ -10,8 +10,8 @@ final case class Transaction(
   blockHash: BlockHash,
   blockIndex: Long,
   hash: TxHash,
-  invalidBefore: Option[BigInt],
-  invalidHereafter: Option[BigInt],
+  invalidBefore: Option[Long],
+  invalidHereafter: Option[Long],
   metadata: Option[Json],
   size: Int
 )
@@ -23,8 +23,8 @@ object Transaction {
       in.blockHash,
       in.blockIndex,
       in.hash,
-      in.invalidBefore,
-      in.invalidHereafter,
+      in.invalidBefore.map(_.toLong),
+      in.invalidHereafter.map(_.toLong),
       in.metadata.map(_.asJson),
       in.size
   )

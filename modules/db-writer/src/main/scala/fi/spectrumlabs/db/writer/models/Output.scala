@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models
 
-import fi.spectrumlabs.core.models.models._
+import fi.spectrumlabs.core.models._
 import fi.spectrumlabs.core.models.{Transaction => Tx}
 import fi.spectrumlabs.db.writer.classes.FromLedger
 import io.circe.Json

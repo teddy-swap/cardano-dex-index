@@ -1,13 +1,12 @@
 package fi.spectrumlabs.core.models
 
 import cats.effect.Sync
+import cats.syntax.either._
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import fi.spectrumlabs.core.models.models.{BlockHash, TxHash}
 import fs2.kafka.{Deserializer, RecordDeserializer, RecordSerializer, Serializer}
-import io.circe.syntax._
 import io.circe.parser.parse
-import cats.syntax.either._
+import io.circe.syntax._
 
 @derive(encoder, decoder)
 final case class Transaction(

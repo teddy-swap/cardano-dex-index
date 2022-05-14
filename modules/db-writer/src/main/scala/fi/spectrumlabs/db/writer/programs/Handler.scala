@@ -2,12 +2,12 @@ package fi.spectrumlabs.db.writer.programs
 
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
-import cats.{Foldable, FunctorFilter, Monad}
+import cats.syntax.parallel._
+import cats.{Foldable, Monad, Parallel}
 import fi.spectrumlabs.core.models.{Transaction => Tx}
-import fi.spectrumlabs.db.writer.models.{Input, Output, Redeemer, Transaction}
-import fi.spectrumlabs.db.writer.persistence.PersistBundle
+import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.streaming.Consumer
-import tofu.streams.{Broadcast, Compile, Evals, Temporal}
+import tofu.streams.{Evals, Temporal}
 import tofu.syntax.monadic._
 import tofu.syntax.streams.evals._
 import tofu.syntax.streams.temporal._
@@ -21,17 +21,17 @@ trait Handler[S[_]] {
 object Handler {
 
   def create[
-    S[_]: Monad: Evals[*[_], F]: FunctorFilter: Temporal[*[_], C]: Compile[*[_], F]: Broadcast,
-    F[_]: Monad,
+    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
+    F[_]: Monad: Parallel,
     C[_]: Foldable
-  ](consumer: Consumer[_, Tx, S, F], persistBundle: PersistBundle[F]): Handler[S] =
-    new Impl[S, F, C](consumer, persistBundle)
+  ](implicit consumer: Consumer[_, Tx, S, F], handlers: NonEmptyList[Handle[Tx, F]]): Handler[S] =
+    new Impl[S, F, C]
 
   final private class Impl[
-    S[_]: Monad: Evals[*[_], F]: FunctorFilter: Temporal[*[_], C]: Compile[*[_], F],
-    F[_]: Monad,
+    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
+    F[_]: Monad: Parallel,
     C[_]: Foldable
-  ](consumer: Consumer[_, Tx, S, F], persistBundle: PersistBundle[F])
+  ](implicit consumer: Consumer[_, Tx, S, F], handlers: NonEmptyList[Handle[Tx, F]])
     extends Handler[S] {
 
     def handle: S[Unit] =
@@ -40,21 +40,7 @@ object Handler {
         .flatMap { batch => //safe to nel
           println(s"Going to process batch: ${batch.size}")
           val batchList = NonEmptyList.fromListUnsafe(batch.toList.map(_.message))
-          def persist =
-            for {
-              _ <- persistBundle.persistTxns.persist(batchList.map(Transaction.fromLedger(_)))
-              _ <- persistBundle.persistInputs.persist(
-                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Input.fromLedger(_)))
-                  )
-              _ <- persistBundle.persistOutputs.persist(
-                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Output.fromLedger(_)))
-                  )
-              _ <- persistBundle.persistRedeemers.persist(
-                    NonEmptyList.fromListUnsafe(batchList.toList.flatMap(Redeemer.fromLedger(_)))
-                  )
-            } yield ()
-
-          eval(persist)
+          eval(handlers.toList.parTraverse(_.handle(batchList)))
             .map(_ => println(s"Batch processed."))
             .evalMap(_ => batch.toList.lastOption.fold(().pure[F])(_.commit)) //logging
         }

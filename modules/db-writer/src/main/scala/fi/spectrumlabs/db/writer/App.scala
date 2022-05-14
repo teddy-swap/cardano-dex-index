@@ -2,26 +2,24 @@ package fi.spectrumlabs.db.writer
 
 import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
-import fi.spectrumlabs.core.models.Transaction
+import fi.spectrumlabs.core.models.{Transaction => Tx}
+import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config.{AppContext, ConfigBundle, ConsumerConfig, KafkaConfig}
-import fi.spectrumlabs.db.writer.persistence.{Persist, PersistBundle}
-import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
-import fi.spectrumlabs.db.writer.schema.{Schema, SchemaBundle}
+import fi.spectrumlabs.db.writer.models._
+import fi.spectrumlabs.db.writer.persistence.PersistBundle
+import fi.spectrumlabs.db.writer.programs.Handler
+import fi.spectrumlabs.db.writer.schema.SchemaBundle
 import fi.spectrumlabs.db.writer.streaming.{Consumer, MakeKafkaConsumer}
 import fs2.Chunk
 import fs2.kafka.RecordDeserializer
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
+import tofu.fs2Instances._
 import tofu.lift.{IsoK, Unlift}
 import tofu.logging.Logs
 import tofu.logging.derivation.loggable.generate
 import zio.interop.catz._
 import zio.{ExitCode, URIO, ZIO}
-import tofu.doobie.log.EmbeddableLogHandler
-import tofu.fs2Instances._
-import zio.interop.catz._
-import doobie.implicits._
-import fi.spectrumlabs.db.writer
 
 object App extends EnvApp[AppContext] {
 
@@ -42,20 +40,30 @@ object App extends EnvApp[AppContext] {
                                                       )
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
-
-      implicit0(consumer: Consumer[String, Transaction, StreamF, RunF]) = makeConsumer[String, Transaction](
+      implicit0(consumer: Consumer[String, Tx, StreamF, RunF]) = makeConsumer[String, Tx](
         configs.tnxConsumer,
         configs.kafka
       )
-
-      schemaBundle = SchemaBundle.create
-
-      persistBundle: PersistBundle[RunF] = PersistBundle.create[xa.DB, RunF](schemaBundle, xa.trans)
-
-      handler = Handler.create[StreamF, RunF, Chunk](consumer, persistBundle)
-
+      implicit0(schemaBundle: SchemaBundle)         = SchemaBundle.create
+      implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
+      handler                                       = makeHandler
       _ <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
     } yield ()
+
+  private def makeHandler(
+    implicit
+    bundle: PersistBundle[RunF],
+    consumer: Consumer[_, Tx, StreamF, RunF]
+  ): Handler[StreamF] = {
+    import bundle._
+    implicit val nelHandlers: NonEmptyList[Handle[Tx, RunF]] = NonEmptyList.of(
+      Handle.createOne[Tx, Transaction, RunF](transaction),
+      Handle.createMany[Tx, Input, RunF](input),
+      Handle.createMany[Tx, Output, RunF](output),
+      Handle.createMany[Tx, Redeemer, RunF](redeemer)
+    )
+    Handler.create[StreamF, RunF, Chunk]
+  }
 
   private def makeConsumer[K: RecordDeserializer[RunF, *], V: RecordDeserializer[RunF, *]](
     conf: ConsumerConfig,
