@@ -83,6 +83,7 @@ lazy val tracker = project
     Libraries.pureconfig
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "tracker.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val dexAggregator = project
@@ -110,6 +111,7 @@ lazy val dbWriter = project
     Libraries.mouse
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "indexes-writer.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val api = project

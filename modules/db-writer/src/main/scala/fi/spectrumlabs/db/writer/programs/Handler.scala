@@ -7,6 +7,7 @@ import cats.{Foldable, Functor, Monad, Parallel}
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config.WriterConfig
 import fi.spectrumlabs.db.writer.streaming.Consumer
+import tofu.Catches
 import tofu.logging.{Logging, Logs}
 import tofu.streams.{Evals, Temporal}
 import tofu.syntax.monadic._
