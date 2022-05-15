@@ -3,16 +3,16 @@ package fi.spectrumlabs.db.writer.programs
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
 import cats.syntax.parallel._
-import cats.{Foldable, Monad, Parallel}
-import fi.spectrumlabs.core.models.{Transaction => Tx}
+import cats.{Foldable, Functor, Monad, Parallel}
 import fi.spectrumlabs.db.writer.classes.Handle
+import fi.spectrumlabs.db.writer.config.WriterConfig
 import fi.spectrumlabs.db.writer.streaming.Consumer
+import tofu.logging.{Logging, Logs}
 import tofu.streams.{Evals, Temporal}
 import tofu.syntax.monadic._
 import tofu.syntax.streams.evals._
 import tofu.syntax.streams.temporal._
-
-import scala.concurrent.duration.DurationInt
+import tofu.syntax.logging._
 
 trait Handler[S[_]] {
   def handle: S[Unit]
@@ -21,28 +21,37 @@ trait Handler[S[_]] {
 object Handler {
 
   def create[
+    A,
     S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
     F[_]: Monad: Parallel,
-    C[_]: Foldable
-  ](implicit consumer: Consumer[_, Tx, S, F], handlers: NonEmptyList[Handle[Tx, F]]): Handler[S] =
-    new Impl[S, F, C]
+    C[_]: Foldable,
+    I[_]: Functor
+  ](
+    config: WriterConfig
+  )(implicit consumer: Consumer[_, A, S, F], handlers: NonEmptyList[Handle[A, F]], logs: Logs[I, F]): I[Handler[S]] =
+    logs.forService[Handler[S]].map(implicit __ => new Impl[A, S, F, C](config))
 
   final private class Impl[
+    A,
     S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
-    F[_]: Monad: Parallel,
+    F[_]: Monad: Parallel: Logging,
     C[_]: Foldable
-  ](implicit consumer: Consumer[_, Tx, S, F], handlers: NonEmptyList[Handle[Tx, F]])
+  ](config: WriterConfig)(implicit consumer: Consumer[_, A, S, F], handlers: NonEmptyList[Handle[A, F]])
     extends Handler[S] {
 
     def handle: S[Unit] =
       consumer.stream
-        .groupWithin(10, 10.seconds) //config
-        .flatMap { batch => //safe to nel
-          println(s"Going to process batch: ${batch.size}")
-          val batchList = NonEmptyList.fromListUnsafe(batch.toList.map(_.message))
-          eval(handlers.toList.parTraverse(_.handle(batchList)))
-            .map(_ => println(s"Batch processed."))
-            .evalMap(_ => batch.toList.lastOption.fold(().pure[F])(_.commit)) //logging
+        .groupWithin(config.batchSize, config.timeout)
+        .flatMap { batch =>
+          batch.toList match {
+            case x :: xs =>
+              val nel = NonEmptyList.of(x, xs: _*).map(_.message)
+              eval(handlers.toList.parTraverse(_.handle(nel)))
+                .evalMap(_ => info"Handler processed next batch of size ${nel.size}.")
+                .evalMap(_ => batch.toList.lastOption.fold(().pure[F])(_.commit))
+            case Nil =>
+              eval(info"Got empty batch in handler. Skip insertion.")
+          }
         }
   }
 }

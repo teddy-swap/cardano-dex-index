@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
 import fi.spectrumlabs.core.models.{Transaction => Tx}
 import fi.spectrumlabs.db.writer.classes.Handle
-import fi.spectrumlabs.db.writer.config.{AppContext, ConfigBundle, ConsumerConfig, KafkaConfig}
+import fi.spectrumlabs.db.writer.config._
 import fi.spectrumlabs.db.writer.models._
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
 import fi.spectrumlabs.db.writer.programs.Handler
@@ -46,23 +46,24 @@ object App extends EnvApp[AppContext] {
       )
       implicit0(schemaBundle: SchemaBundle)         = SchemaBundle.create
       implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
-      handler                                       = makeHandler
-      _ <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
+      handler <- makeHandler(configs.writer)
+      _       <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
     } yield ()
 
-  private def makeHandler(
+  private def makeHandler(config: WriterConfig)(
     implicit
     bundle: PersistBundle[RunF],
     consumer: Consumer[_, Tx, StreamF, RunF]
-  ): Handler[StreamF] = {
+  ) = Resource.eval {
     import bundle._
-    implicit val nelHandlers: NonEmptyList[Handle[Tx, RunF]] = NonEmptyList.of(
-      Handle.createOne[Tx, Transaction, RunF](transaction),
-      Handle.createMany[Tx, Input, RunF](input),
-      Handle.createMany[Tx, Output, RunF](output),
-      Handle.createMany[Tx, Redeemer, RunF](redeemer)
-    )
-    Handler.create[StreamF, RunF, Chunk]
+    for {
+      txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction)
+      in   <- Handle.createMany[Tx, Input, InitF, RunF](input)
+      out  <- Handle.createMany[Tx, Output, InitF, RunF](output)
+      reed <- Handle.createMany[Tx, Redeemer, InitF, RunF](redeemer)
+      implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
+      handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config)
+    } yield handler
   }
 
   private def makeConsumer[K: RecordDeserializer[RunF, *], V: RecordDeserializer[RunF, *]](

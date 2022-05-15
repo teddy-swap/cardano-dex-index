@@ -7,13 +7,7 @@ import tofu.doobie.LiftConnectionIO
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
 
-import fi.spectrumlabs.db.writer.schema.jsonPut
-
-import doobie.postgres._
-import doobie.postgres.implicits._
-import derevo.derive
-import doobie._
-import doobie.implicits._
+import fi.spectrumlabs.db.writer.schema._
 
 final case class PersistBundle[F[_]](
   input: Persist[Input, F],

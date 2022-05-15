@@ -10,8 +10,8 @@ final case class Transaction(
   blockHash: BlockHash,
   blockIndex: Long,
   hash: TxHash,
-  invalidBefore: Option[Long],
-  invalidHereafter: Option[Long],
+  invalidBefore: Option[BigInt],
+  invalidHereafter: Option[BigInt],
   metadata: Option[Json],
   size: Int
 )
@@ -23,8 +23,8 @@ object Transaction {
       in.blockHash,
       in.blockIndex,
       in.hash,
-      in.invalidBefore.map(_.toLong),
-      in.invalidHereafter.map(_.toLong),
+      in.invalidBefore,
+      in.invalidHereafter,
       in.metadata.map(_.asJson),
       in.size
   )
