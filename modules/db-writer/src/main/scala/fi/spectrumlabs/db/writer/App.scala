@@ -2,6 +2,7 @@ package fi.spectrumlabs.db.writer
 
 import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
+import fi.spectrumlabs.core.EnvApp
 import fi.spectrumlabs.core.models.{Transaction => Tx}
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config._
@@ -40,7 +41,7 @@ object App extends EnvApp[AppContext] {
                                                       )
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
-      implicit0(consumer: Consumer[String, Tx, StreamF, RunF]) = makeConsumer[String, Tx](
+      implicit0(consumer: Consumer[String, Option[Tx], StreamF, RunF]) = makeConsumer[String, Option[Tx]](
         configs.consumer,
         configs.kafka
       )
@@ -53,14 +54,14 @@ object App extends EnvApp[AppContext] {
   private def makeHandler(config: WriterConfig)(
     implicit
     bundle: PersistBundle[RunF],
-    consumer: Consumer[_, Tx, StreamF, RunF]
+    consumer: Consumer[_, Option[Tx], StreamF, RunF]
   ) = Resource.eval {
     import bundle._
     for {
       txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction)
-      in   <- Handle.createMany[Tx, Input, InitF, RunF](input)
-      out  <- Handle.createMany[Tx, Output, InitF, RunF](output)
-      reed <- Handle.createMany[Tx, Redeemer, InitF, RunF](redeemer)
+      in   <- Handle.createNel[Tx, Input, InitF, RunF](input)
+      out  <- Handle.createNel[Tx, Output, InitF, RunF](output)
+      reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer)
       implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
       handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config)
     } yield handler

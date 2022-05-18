@@ -26,12 +26,19 @@ object Handle {
   )(implicit fromLedger: FromLedger[A, B], logs: Logs[I, F]): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplOne[A, B, F](persist))
 
-  def createMany[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
+  def createList[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
     implicit
     fromLedger: FromLedger[A, List[B]],
     logs: Logs[I, F]
   ): I[Handle[A, F]] =
-    logs.forService[Handle[A, F]].map(implicit __ => new ImplMany[A, B, F](persist))
+    logs.forService[Handle[A, F]].map(implicit __ => new ImplList[A, B, F](persist))
+
+  def createNel[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
+    implicit
+    fromLedger: FromLedger[A, NonEmptyList[B]],
+    logs: Logs[I, F]
+  ): I[Handle[A, F]] =
+    logs.forService[Handle[A, F]].map(implicit __ => new ImplNel[A, B, F](persist))
 
   private final class ImplOne[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(implicit fromLedger: FromLedger[A, B])
     extends Handle[A, F] {
@@ -41,13 +48,28 @@ object Handle {
         .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")
   }
 
-  private final class ImplMany[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
+  private final class ImplList[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
     implicit
     fromLedger: FromLedger[A, List[B]]
   ) extends Handle[A, F] {
 
     def handle(in: NonEmptyList[A]): F[Unit] =
       in.toList.flatMap(fromLedger(_)) match {
+        case x :: xs =>
+          (NonEmptyList.of(x, xs: _*) |> persist.persist)
+            .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")
+        case Nil =>
+          info"Nothing to extract. Batch contains 0 elements to persist."
+      }
+  }
+
+  private final class ImplNel[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
+    implicit
+    fromLedger: FromLedger[A, NonEmptyList[B]]
+  ) extends Handle[A, F] {
+
+    def handle(in: NonEmptyList[A]): F[Unit] =
+      in.flatMap(fromLedger(_)).toList match {
         case x :: xs =>
           (NonEmptyList.of(x, xs: _*) |> persist.persist)
             .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")

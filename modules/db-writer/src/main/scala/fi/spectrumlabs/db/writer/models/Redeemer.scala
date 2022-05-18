@@ -22,7 +22,7 @@ final case class Redeemer(
 object Redeemer {
 
   implicit val fromLedger: FromLedger[Tx, List[Redeemer]] = (in: Tx) =>
-    in.inputs.flatMap { i =>
+    in.inputs.toList.flatMap { i =>
       i.redeemer.map { r =>
         Redeemer(
           in.hash,

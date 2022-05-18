@@ -1,12 +1,12 @@
-package fi.spectrumlabs.db.writer
+package fi.spectrumlabs.core
 
+import zio.interop.catz._
+import zio.{RIO, ZEnv}
 import cats.data.ReaderT
 import fs2.Stream
 import tofu.WithRun
 import tofu.lift.{IsoK, Unlift}
 import tofu.logging.{Loggable, LoggableContext, Logs}
-import zio.interop.catz._
-import zio.{RIO, ZEnv}
 
 abstract class EnvApp[C: Loggable] extends CatsApp {
 

@@ -3,21 +3,14 @@ package fi.spectrumlabs.streaming
 import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Resource}
 import cats.tagless.InvariantK
 import cats.tagless.syntax.invariantK._
-import cats.{~>, FlatMap, Functor, Monad}
-import fi.spectrumlabs.config.{AppContext, KafkaConfig, ProducerConfig}
+import cats.{FlatMap, Monad, ~>}
+import fi.spectrumlabs.config.{KafkaConfig, ProducerConfig}
 import fs2._
 import fs2.kafka._
-import tofu.WithContext
 import tofu.higherKind.Embed
 import tofu.lift.IsoK
-import tofu.logging.Logs
-import tofu.streams.Evals
-import tofu.syntax.context._
-import tofu.syntax.streams.all._
-import tofu.syntax.embed._
 import tofu.syntax.funk._
 import tofu.syntax.monadic._
-import tofu.syntax.logging._
 
 trait Producer[K, V, F[_]] {
 
@@ -45,7 +38,7 @@ object Producer {
           def produce: G[Record[K, V]] => G[Unit] = ga => fk(af.produce(gK(ga)))
         }
     }
-
+//InitF, StreamF, RunF
   def make[
     I[_]: ConcurrentEffect: ContextShift,
     F[_]: FlatMap,
@@ -61,6 +54,7 @@ object Producer {
       ProducerSettings[I, K, V]
         .withBootstrapServers(kafka.bootstrapServers.mkString(","))
     KafkaProducer.resource.using(producerSettings).map { prod =>
+      val a: Live[I, K, V] = new Live(conf, prod)
       new Live(conf, prod)
         .imapK(funK[Stream[I, *], Stream[G, *]](_.translate(isoKGI.fromF)) andThen isoKFG.fromF)(
           isoKFG.tof andThen funK[Stream[G, *], Stream[I, *]](_.translate(isoKGI.tof))

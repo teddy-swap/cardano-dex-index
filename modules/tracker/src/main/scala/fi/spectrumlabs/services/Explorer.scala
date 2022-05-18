@@ -4,14 +4,15 @@ import cats.Functor
 import cats.syntax.functor._
 import cats.tagless.FunctorK
 import fi.spectrumlabs.config.ExplorerConfig
-import fi.spectrumlabs.core.models.Transaction
+import fi.spectrumlabs.core.models.{Transaction, TxModel}
+import fi.spectrumlabs.streaming.QueueStreaming
 import fs2.Stream
 import io.circe.Json
 import io.circe.jawn.CirceSupportParser
 import jawnfs2._
 import org.typelevel.jawn.Facade
 import sttp.capabilities.fs2.Fs2Streams
-import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext}
+import sttp.client3.{SttpBackend, UriContext, asStreamAlwaysUnsafe, basicRequest}
 import sttp.model.Uri.Segment
 import tofu.MonadThrow
 import tofu.fs2.LiftStream
@@ -19,7 +20,7 @@ import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 
 trait Explorer[S[_], F[_]] {
-  def streamTransactions(offset: Int, limit: Int): S[Transaction]
+  def streamTransactions(offset: Long, limit: Int): S[Transaction]
 }
 
 object Explorer {
@@ -36,13 +37,19 @@ object Explorer {
   ): I[Explorer[S, F]] =
     logs.forService[Explorer[S, F]].map(implicit __ => functorK.mapK(new Impl(config))(LiftStream[S, F].liftF))
 
+  def create1[F[_]: MonadThrow, I[_]: Functor](config: ExplorerConfig)(
+    implicit
+    backend: SttpBackend[F, Fs2Streams[F]],
+    logs: Logs[I, F]
+  ): I[Explorer[Stream[F, *], F]] = logs.forService[Explorer[Stream[F, *], F]].map(implicit __ => new Impl(config))
+
   private final class Impl[F[_]: MonadThrow: Logging](config: ExplorerConfig)(
     implicit backend: SttpBackend[F, Fs2Streams[F]]
   ) extends Explorer[Stream[F, *], F] {
 
     implicit private val facade: Facade[Json] = new CirceSupportParser(None, allowDuplicateKeys = false).facade
 
-    def streamTransactions(offset: Int, limit: Int): Stream[F, Transaction] = {
+    def streamTransactions(offset: Long, limit: Int): Stream[F, Transaction] = {
       val req =
         basicRequest
           .get(

@@ -1,4 +1,4 @@
-import Dependencies._
+import Dependencies.{Libraries, _}
 import sbt.Keys.organization
 
 lazy val commonScalacOption = List(
@@ -51,7 +51,8 @@ lazy val core = project
     Libraries.tofuLogging,
     Libraries.enumeratum,
     Libraries.kafka,
-    Libraries.circeParse
+    Libraries.circeParse,
+    Libraries.tofuZio
   ))
   .settings(commonSettings)
 

@@ -1,5 +1,6 @@
 package fi.spectrumlabs.db.writer.models
 
+import cats.data.NonEmptyList
 import fi.spectrumlabs.core.models.{OutRef, TxHash}
 import fi.spectrumlabs.core.models.{Transaction => Tx}
 import fi.spectrumlabs.db.writer.classes.FromLedger
@@ -8,7 +9,7 @@ final case class Input(txHash: TxHash, txIndex: Long, outFef: OutRef, outIndex: 
 
 object Input {
 
-  implicit val fromLedger: FromLedger[Tx, List[Input]] = (in: Tx) =>
+  implicit val fromLedger: FromLedger[Tx, NonEmptyList[Input]] = (in: Tx) =>
     in.inputs.map { i =>
       Input(
         in.hash,
