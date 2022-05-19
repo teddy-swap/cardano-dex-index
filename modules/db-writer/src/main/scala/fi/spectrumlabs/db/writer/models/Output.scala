@@ -1,8 +1,8 @@
 package fi.spectrumlabs.db.writer.models
 
 import cats.data.NonEmptyList
-import fi.spectrumlabs.core.models._
-import fi.spectrumlabs.core.models.{Transaction => Tx}
+import fi.spectrumlabs.explorer.models._
+import fi.spectrumlabs.core.models.TxEvent
 import fi.spectrumlabs.db.writer.classes.FromLedger
 import io.circe.Json
 import io.circe.syntax._
@@ -25,7 +25,7 @@ final case class Output(
 
 object Output {
 
-  implicit val fromLedger: FromLedger[Tx, NonEmptyList[Output]] = (in: Tx) =>
+  implicit val fromLedger: FromLedger[TxEvent, NonEmptyList[Output]] = (in: TxEvent) =>
     in.outputs.map { o =>
       Output(
         in.hash,

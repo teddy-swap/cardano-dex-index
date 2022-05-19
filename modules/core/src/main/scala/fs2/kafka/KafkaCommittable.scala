@@ -1,7 +1,7 @@
 package fs2.kafka
 
 import cats.data.Chain
-import fi.spectrumlabs.db.writer.streaming.Committable
+import fi.spectrumlabs.core.streaming.Committable
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
 

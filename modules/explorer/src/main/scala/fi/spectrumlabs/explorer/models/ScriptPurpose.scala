@@ -1,4 +1,4 @@
-package fi.spectrumlabs.core.models
+package fi.spectrumlabs.explorer.models
 
 import cats.syntax.either._
 import doobie.util.{Get, Put}

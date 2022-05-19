@@ -1,4 +1,4 @@
-package fi.spectrumlabs.db.writer.streaming
+package fi.spectrumlabs.core.streaming
 
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition

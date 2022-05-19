@@ -2,7 +2,7 @@ package fi.spectrumlabs.config
 
 import derevo.derive
 import tofu.WithContext
-import tofu.logging.derivation.{hidden, loggable}
+import tofu.logging.derivation.loggable
 import tofu.optics.macros.{promote, ClassyOptics}
 
 @ClassyOptics

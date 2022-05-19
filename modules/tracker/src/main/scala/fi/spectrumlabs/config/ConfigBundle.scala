@@ -2,6 +2,7 @@ package fi.spectrumlabs.config
 
 import derevo.derive
 import derevo.pureconfig.pureconfigReader
+import fi.spectrumlabs.core.streaming.config.{KafkaConfig, ProducerConfig}
 import tofu.WithContext
 import tofu.logging.derivation.loggable
 import tofu.optics.macros.{promote, ClassyOptics}

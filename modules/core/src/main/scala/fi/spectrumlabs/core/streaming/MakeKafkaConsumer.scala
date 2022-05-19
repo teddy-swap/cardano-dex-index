@@ -1,14 +1,12 @@
-package fi.spectrumlabs.db.writer.streaming
+package fi.spectrumlabs.core.streaming
 
-import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Timer}
+import cats.effect._
 import cats.{FlatMap, Functor}
-import fi.spectrumlabs.db.writer.config.{ConsumerConfig, KafkaConfig}
+import fi.spectrumlabs.core.streaming.config._
 import fs2.Stream
 import fs2.kafka._
 import tofu.higherKind.Embed
 import tofu.lift.Unlift
-import tofu.syntax.context._
-import tofu.syntax.embed._
 import tofu.syntax.monadic._
 import tofu.syntax.unlift._
 

@@ -4,9 +4,9 @@ import cats.data.NonEmptyList
 import cats.syntax.foldable._
 import cats.syntax.parallel._
 import cats.{Foldable, Functor, Monad, Parallel}
+import fi.spectrumlabs.core.streaming.Consumer
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config.WriterConfig
-import fi.spectrumlabs.db.writer.streaming.Consumer
 import tofu.logging.{Logging, Logs}
 import tofu.streams.{Evals, Temporal}
 import tofu.syntax.logging._
@@ -28,7 +28,11 @@ object Handler {
     I[_]: Functor
   ](
     config: WriterConfig
-  )(implicit consumer: Consumer[_, Option[A], S, F], handlers: NonEmptyList[Handle[A, F]], logs: Logs[I, F]): I[Handler[S]] =
+  )(
+    implicit consumer: Consumer[_, Option[A], S, F],
+    handlers: NonEmptyList[Handle[A, F]],
+    logs: Logs[I, F]
+  ): I[Handler[S]] =
     logs.forService[Handler[S]].map(implicit __ => new Impl[A, S, F, C](config))
 
   final private class Impl[

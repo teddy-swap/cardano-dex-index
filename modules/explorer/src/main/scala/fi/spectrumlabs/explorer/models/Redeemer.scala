@@ -1,8 +1,7 @@
-package fi.spectrumlabs.core.models
+package fi.spectrumlabs.explorer.models
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import fi.spectrumlabs.core.models.{Bytea, Hash28}
 import io.circe.Json
 
 @derive(encoder, decoder)

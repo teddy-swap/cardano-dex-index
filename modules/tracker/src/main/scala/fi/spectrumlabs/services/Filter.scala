@@ -1,10 +1,10 @@
 package fi.spectrumlabs.services
 
-import fi.spectrumlabs.core.models.Transaction
+import fi.spectrumlabs.core.models.TxEvent
 
 object Filter {
 
-  type TxFilter = Transaction => Boolean
+  type TxFilter = TxEvent => Boolean
 
   def txFilter: TxFilter = _ => true
 }

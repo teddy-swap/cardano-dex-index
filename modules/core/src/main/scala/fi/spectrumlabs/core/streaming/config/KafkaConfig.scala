@@ -1,4 +1,4 @@
-package fi.spectrumlabs.config
+package fi.spectrumlabs.core.streaming.config
 
 import derevo.derive
 import derevo.pureconfig.pureconfigReader

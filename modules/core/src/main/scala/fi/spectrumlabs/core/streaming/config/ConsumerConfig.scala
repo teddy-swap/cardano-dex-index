@@ -1,8 +1,8 @@
-package fi.spectrumlabs.db.writer.config
+package fi.spectrumlabs.core.streaming.config
 
 import derevo.derive
 import derevo.pureconfig.pureconfigReader
-import fi.spectrumlabs.db.writer.streaming._
+import fi.spectrumlabs.core.streaming._
 import tofu.WithContext
 import tofu.logging.derivation.loggable
 

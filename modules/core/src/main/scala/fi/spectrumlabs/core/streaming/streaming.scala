@@ -1,4 +1,4 @@
-package fi.spectrumlabs.db.writer
+package fi.spectrumlabs.core
 
 import derevo.derive
 import io.estatico.newtype.macros.newtype
@@ -27,4 +27,5 @@ package object streaming {
   object ClientId {
     implicit val configReader: ConfigReader[ClientId] = deriving
   }
+
 }

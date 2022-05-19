@@ -1,4 +1,4 @@
-package fi.spectrumlabs.db.writer.streaming
+package fi.spectrumlabs.core.streaming
 
 import cats.Functor
 import cats.data.Chain

@@ -1,19 +1,19 @@
-package fi.spectrumlabs.db.writer.streaming
+package fi.spectrumlabs.core.streaming
 
 import cats.tagless.FunctorK
-import cats.{~>, Applicative, FlatMap, Functor, Monad, MonoidK}
-import fi.spectrumlabs.db.writer.config.ConsumerConfig
-import fi.spectrumlabs.db.writer.streaming.types.KafkaOffset
+import cats.{~>, FlatMap, Functor, Monad, MonoidK}
+import fi.spectrumlabs.core.streaming.config.ConsumerConfig
+import fi.spectrumlabs.core.streaming.types.KafkaOffset
 import fs2.Stream
-import fs2.kafka._
+import fs2.kafka.KafkaCommittable
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
-import tofu.fs2.LiftStream
 import tofu.higherKind.Embed
-import tofu.streams.{Evals, ParFlatten}
+import tofu.streams._
 import tofu.syntax.context._
 import tofu.syntax.monadic._
 import tofu.syntax.streams.all._
+import tofu.fs2.LiftStream
 
 trait Consumer[K, V, F[_], G[_]] {
 

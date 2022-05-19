@@ -1,10 +1,10 @@
-package fi.spectrumlabs.streaming
+package fi.spectrumlabs.core.streaming
 
-import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Resource}
+import cats.effect._
 import cats.tagless.InvariantK
 import cats.tagless.syntax.invariantK._
-import cats.{FlatMap, Monad, ~>}
-import fi.spectrumlabs.config.{KafkaConfig, ProducerConfig}
+import cats.{~>, FlatMap, Monad}
+import fi.spectrumlabs.core.streaming.config._
 import fs2._
 import fs2.kafka._
 import tofu.higherKind.Embed
@@ -38,7 +38,7 @@ object Producer {
           def produce: G[Record[K, V]] => G[Unit] = ga => fk(af.produce(gK(ga)))
         }
     }
-//InitF, StreamF, RunF
+
   def make[
     I[_]: ConcurrentEffect: ContextShift,
     F[_]: FlatMap,

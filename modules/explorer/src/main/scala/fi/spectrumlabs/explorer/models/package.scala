@@ -1,8 +1,8 @@
-package fi.spectrumlabs.core
+package fi.spectrumlabs.explorer
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import doobie.{Get, Put}
+import doobie._
 import io.estatico.newtype.macros.newtype
 import tofu.logging.derivation.loggable
 
@@ -86,11 +86,5 @@ package object models {
   object Addr {
     implicit val get: Get[Addr] = deriving
     implicit val put: Put[Addr] = deriving
-  }
-  @newtype final case class Offset(value: Int)
-
-  object Offset {
-    implicit val get: Get[Offset] = deriving
-    implicit val put: Put[Offset] = deriving
   }
 }

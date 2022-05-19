@@ -37,7 +37,21 @@ lazy val dexIndex = project
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
   .settings(commonSettings)
   .settings(name := "cardano-dex-index")
-  .aggregate(core, tracker, dexAggregator, dbWriter, api)
+  .aggregate(core, tracker, dexAggregator, dbWriter, api, explorer)
+
+lazy val explorer = project
+  .in(file("modules/explorer"))
+  .withId("explorer")
+  .settings(name := "explorer")
+  .settings(libraryDependencies ++= List(
+    Libraries.derevoCirce,
+    Libraries.tofuDerivation,
+    Libraries.newtype,
+    Libraries.tofuLogging,
+    Libraries.tofuDoobie,
+    Libraries.enumeratum
+  ))
+  .settings(commonSettings)
 
 lazy val core = project
   .in(file("modules/core"))
@@ -45,15 +59,22 @@ lazy val core = project
   .settings(name := "cardano-markets-core")
   .settings(libraryDependencies ++= List(
     Libraries.derevoCirce,
+    Libraries.derevoPureconfig,
+
     Libraries.tofuDerivation,
     Libraries.tofuDoobie,
-    Libraries.newtype,
     Libraries.tofuLogging,
+    Libraries.tofuZio,
+    Libraries.tofuStreams,
+    Libraries.tofuFs2,
+
+    Libraries.newtype,
     Libraries.enumeratum,
     Libraries.kafka,
     Libraries.circeParse,
-    Libraries.tofuZio
+    Libraries.scalaland
   ))
+  .dependsOn(explorer)
   .settings(commonSettings)
 
 lazy val tracker = project
@@ -69,18 +90,9 @@ lazy val tracker = project
     Libraries.redis4catsEffects,
     Libraries.derevoCats,
     Libraries.derevoCatsTagless,
-    Libraries.derevoCirce,
-    Libraries.tofuDerivation,
     Libraries.jawnFs2,
-    Libraries.tofuFs2,
-    Libraries.kafka,
-    Libraries.derevoPureconfig,
-    Libraries.tofuLogging,
-    Libraries.newtype,
-    Libraries.enumeratum,
     Libraries.enumeratumCirce,
     Libraries.mouse,
-    Libraries.tofuZio,
     Libraries.pureconfig
   ))
   .dependsOn(core)
