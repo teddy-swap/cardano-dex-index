@@ -50,26 +50,24 @@ object TrackerProgram {
   ) extends TrackerProgram[S] {
 
     def run: S[Unit] =
-      eval(cache.getLastOffset) >>= exec
-
-    def exec(offset: Long): S[Unit] =
-      eval(info"Current offset is: $offset. Going to perform next request.") >>
-      explorer
-        .streamTransactions(offset, config.limit)
-        .groupWithin(config.batchSize, config.timeout)
-        .evalMap { batch =>
-          info"Received batch of ${batch.size} elems."
-            .as {
-              batch.toList.flatMap(TxEvent.fromExplorer).filter(Filter.txFilter).map(tx => Record(tx.hash.value, tx))
-            }
-            .flatMap { txn =>
-              (emits[S](txn) |> producer.produce).drain
-            }
-            .flatMap { _ =>
-              cache.setLastOffset(batch.size + offset + 1)
-            }
-        }
-        .repeat
+      (eval(cache.getLastOffset) >>= { offset: Long =>
+        eval(info"Current offset is: $offset. Going to perform next request.") >>
+        explorer
+          .streamTransactions(offset, config.limit)
+          .groupWithin(config.batchSize, config.timeout)
+          .evalMap { batch =>
+            info"Received batch of ${batch.size} elems."
+              .as {
+                batch.toList.flatMap(TxEvent.fromExplorer).filter(Filter.txFilter).map(tx => Record(tx.hash.value, tx))
+              }
+              .flatMap { txn =>
+                (emits[S](txn) |> producer.produce).drain
+              }
+              .flatMap { _ =>
+                cache.setLastOffset(batch.size + offset)
+              }
+          }
+      }).repeat
         .throttled(config.throttleRate)
 
   }
