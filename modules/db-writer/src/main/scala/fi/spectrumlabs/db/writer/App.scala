@@ -3,7 +3,7 @@ package fi.spectrumlabs.db.writer
 import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
 import fi.spectrumlabs.core.EnvApp
-import fi.spectrumlabs.core.models.TxEvent
+import fi.spectrumlabs.core.models.Tx
 import fi.spectrumlabs.core.streaming.config.{ConsumerConfig, KafkaConfig}
 import fi.spectrumlabs.core.streaming.{Consumer, MakeKafkaConsumer}
 import fi.spectrumlabs.db.writer.classes.Handle
@@ -43,7 +43,7 @@ object App extends EnvApp[AppContext] {
                                                       )
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
-      implicit0(consumer: Consumer[String, Option[TxEvent], StreamF, RunF]) = makeConsumer[String, Option[TxEvent]](
+      implicit0(consumer: Consumer[String, Option[Tx], StreamF, RunF]) = makeConsumer[String, Option[Tx]](
         configs.consumer,
         configs.kafka
       )
@@ -56,16 +56,16 @@ object App extends EnvApp[AppContext] {
   private def makeHandler(config: WriterConfig)(
     implicit
     bundle: PersistBundle[RunF],
-    consumer: Consumer[_, Option[TxEvent], StreamF, RunF]
+    consumer: Consumer[_, Option[Tx], StreamF, RunF]
   ) = Resource.eval {
     import bundle._
     for {
-      txn  <- Handle.createOne[TxEvent, Transaction, InitF, RunF](transaction)
-      in   <- Handle.createNel[TxEvent, Input, InitF, RunF](input)
-      out  <- Handle.createNel[TxEvent, Output, InitF, RunF](output)
-      reed <- Handle.createList[TxEvent, Redeemer, InitF, RunF](redeemer)
-      implicit0(nelHandlers: NonEmptyList[Handle[TxEvent, RunF]]) = NonEmptyList.of(txn, in, out, reed)
-      handler <- Handler.create[TxEvent, StreamF, RunF, Chunk, InitF](config)
+      txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction)
+      in   <- Handle.createNel[Tx, Input, InitF, RunF](input)
+      out  <- Handle.createNel[Tx, Output, InitF, RunF](output)
+      reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer)
+      implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
+      handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config)
     } yield handler
   }
 

@@ -2,13 +2,13 @@ package fi.spectrumlabs.core.models
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import fi.spectrumlabs.explorer.models.Redeemer
+import fi.spectrumlabs.explorer.models.{Redeemer => R}
 import fi.spectrumlabs.explorer.models._
 import io.circe.Json
 import io.scalaland.chimney.dsl._
 
 @derive(encoder, decoder)
-final case class RedeemerEvent(
+final case class Redeemer(
   unitMem: Long,
   unitSteps: Long,
   fee: BigInt,
@@ -19,8 +19,8 @@ final case class RedeemerEvent(
   dataBin: Option[Bytea]
 )
 
-object RedeemerEvent {
+object Redeemer {
 
-  def fromExplorer(redeemer: Redeemer): RedeemerEvent =
-    redeemer.into[RedeemerEvent].transform
+  def fromExplorer(redeemer: R): Redeemer =
+    redeemer.into[Redeemer].transform
 }

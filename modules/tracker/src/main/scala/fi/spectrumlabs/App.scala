@@ -8,7 +8,7 @@ import dev.profunktor.redis4cats.data.RedisCodec
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import fi.spectrumlabs.config.{AppContext, ConfigBundle}
 import fi.spectrumlabs.core.EnvApp
-import fi.spectrumlabs.core.models.TxEvent
+import fi.spectrumlabs.core.models.Tx
 import fi.spectrumlabs.core.streaming.Producer
 import fi.spectrumlabs.programs.TrackerProgram
 import fi.spectrumlabs.repositories.TrackerCache
@@ -41,10 +41,10 @@ object App extends EnvApp[AppContext] {
       configs <- Resource.eval(ConfigBundle.load[InitF](configPathOpt, blocker))
       ctx                                   = AppContext.init(configs)
       implicit0(isoKRun: IsoK[RunF, InitF]) = isoKRunByContext(ctx)
-      producer: Producer[String, TxEvent, StreamF] <- Producer.make[InitF, StreamF, RunF, String, TxEvent](
-                                                       configs.producer,
-                                                       configs.kafka
-                                                     )
+      producer: Producer[String, Tx, StreamF] <- Producer.make[InitF, StreamF, RunF, String, Tx](
+                                                  configs.producer,
+                                                  configs.kafka
+                                                )
       implicit0(ul: Unlift[RunF, InitF]) = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
       implicit0(redis: RedisCommands[RunF, String, Long])     <- mkRedis(ctx)
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend(ctx, blocker)

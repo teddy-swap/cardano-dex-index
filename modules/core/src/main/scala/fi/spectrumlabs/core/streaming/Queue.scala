@@ -9,8 +9,14 @@ import tofu.logging.{Logging, Logs}
 import tofu.syntax.monadic._
 
 trait Queue[F[_], A] {
-  def enqueue1(a: A): F[Unit]
-  def dequeue1: F[A]
+
+  /** semantic blocking */
+  def take: F[A]
+
+  /** semantic non blocking */
+  def tryTake: F[Option[A]]
+
+  def offer(a: A): F[Unit]
 }
 
 trait QueueStreaming[S[_], F[_], A] extends Queue[F, A] {
@@ -29,9 +35,11 @@ object Queue {
 
           def dequeueBatch(size: Int): Eff[List[A]] = af.dequeueBatch(size)
 
-          def enqueue1(a: A): Eff[Unit] = af.enqueue1(a)
+          def take: Eff[A] = af.take
 
-          def dequeue1: Eff[A] = af.dequeue1
+          def tryTake: Eff[Option[A]] = af.tryTake
+
+          def offer(a: A): Eff[Unit] = af.offer(a)
         }
     }
 
@@ -68,9 +76,10 @@ object Queue {
 
     def enqueue: Pipe[F, A, Unit] = queue.enqueue
 
-    def enqueue1(a: A): F[Unit] = queue.enqueue1(a)
+    def take: F[A] = queue.dequeue1
 
-    def dequeue1: F[A] = queue.dequeue1
+    def tryTake: F[Option[A]] = queue.tryDequeue1
 
+    def offer(a: A): F[Unit] = queue.enqueue1(a)
   }
 }

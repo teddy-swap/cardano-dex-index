@@ -6,13 +6,13 @@ import fi.spectrumlabs.explorer.models.TxInput
 import io.scalaland.chimney.dsl._
 
 @derive(encoder, decoder)
-final case class InputEvent(
-  out: OutputEvent,
-  redeemer: Option[RedeemerEvent]
+final case class Input(
+  out: Output,
+  redeemer: Option[Redeemer]
 )
 
-object InputEvent {
+object Input {
 
-  def fromExplorer(in: TxInput): InputEvent =
-    in.into[InputEvent].transform
+  def fromExplorer(in: TxInput): Input =
+    in.into[Input].transform
 }

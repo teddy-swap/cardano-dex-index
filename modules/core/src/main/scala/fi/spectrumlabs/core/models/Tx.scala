@@ -6,34 +6,34 @@ import derevo.derive
 import fi.spectrumlabs.explorer.models._
 
 @derive(encoder, decoder)
-final case class TxEvent(
+final case class Tx(
   blockHash: BlockHash,
   blockIndex: Long,
   hash: TxHash,
-  inputs: NonEmptyList[InputEvent],
-  outputs: NonEmptyList[OutputEvent],
+  inputs: NonEmptyList[Input],
+  outputs: NonEmptyList[Output],
   invalidBefore: Option[BigInt],
   invalidHereafter: Option[BigInt],
-  metadata: Option[MetadataEvent],
+  metadata: Option[Meta],
   size: Int
 )
 
-object TxEvent {
+object Tx {
 
-  def fromExplorer(tx: Transaction): Option[TxEvent] =
+  def fromExplorer(tx: Transaction): Option[Tx] =
     for {
       in  <- NonEmptyList.fromList(tx.inputs)
       out <- NonEmptyList.fromList(tx.outputs)
     } yield
-      TxEvent(
+      Tx(
         tx.blockHash,
         tx.blockIndex,
         tx.hash,
-        in.map(InputEvent.fromExplorer),
-        out.map(OutputEvent.fromExplorer),
+        in.map(Input.fromExplorer),
+        out.map(Output.fromExplorer),
         tx.invalidBefore,
         tx.invalidHereafter,
-        tx.metadata.map(MetadataEvent.fromExplorer),
+        tx.metadata.map(Meta.fromExplorer),
         tx.size
       )
 }

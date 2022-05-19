@@ -4,7 +4,7 @@ import fi.spectrumlabs.explorer.models.ScriptPurpose
 import fi.spectrumlabs.explorer.models.{Bytea, Hash28, TxHash}
 import fi.spectrumlabs.db.writer.classes.FromLedger
 import io.circe.Json
-import fi.spectrumlabs.core.models.TxEvent
+import fi.spectrumlabs.core.models.Tx
 
 final case class Redeemer(
   txHash: TxHash,
@@ -21,7 +21,7 @@ final case class Redeemer(
 
 object Redeemer {
 
-  implicit val fromLedger: FromLedger[TxEvent, List[Redeemer]] = (in: TxEvent) =>
+  implicit val fromLedger: FromLedger[Tx, List[Redeemer]] = (in: Tx) =>
     in.inputs.toList.flatMap { i =>
       i.redeemer.map { r =>
         Redeemer(

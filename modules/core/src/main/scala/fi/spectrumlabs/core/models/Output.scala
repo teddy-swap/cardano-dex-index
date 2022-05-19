@@ -8,7 +8,7 @@ import io.circe.Json
 import io.scalaland.chimney.dsl._
 
 @derive(encoder, decoder)
-final case class OutputEvent(
+final case class Output(
   ref: OutRef,
   blockHash: BlockHash,
   txHash: TxHash,
@@ -23,8 +23,8 @@ final case class OutputEvent(
   spentByTxHash: Option[TxHash]
 )
 
-object OutputEvent {
+object Output {
 
-  def fromExplorer(out: TxOutput): OutputEvent =
-    out.into[OutputEvent].transform
+  def fromExplorer(out: TxOutput): Output =
+    out.into[Output].transform
 }

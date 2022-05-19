@@ -4,7 +4,7 @@ import cats.effect.Timer
 import cats.syntax.foldable._
 import cats.{Defer, Foldable, Functor, FunctorFilter, Monad, SemigroupK}
 import fi.spectrumlabs.config.TrackerConfig
-import fi.spectrumlabs.core.models.TxEvent
+import fi.spectrumlabs.core.models.Tx
 import fi.spectrumlabs.core.streaming.{Producer, Record}
 import fi.spectrumlabs.repositories.TrackerCache
 import fi.spectrumlabs.services.{Explorer, Filter}
@@ -31,7 +31,7 @@ object TrackerProgram {
     F[_]: Monad: Timer,
     I[_]: Functor,
     C[_]: Foldable
-  ](producer: Producer[String, TxEvent, S], config: TrackerConfig)(
+  ](producer: Producer[String, Tx, S], config: TrackerConfig)(
     implicit
     cache: TrackerCache[F],
     explorer: Explorer[S, F],
@@ -43,7 +43,7 @@ object TrackerProgram {
     S[_]: Monad: Evals[*[_], F]: FunctorFilter: Temporal[*[_], C]: Compile[*[_], F]: SemigroupK: Defer: Pace,
     F[_]: Monad: Logging,
     C[_]: Foldable
-  ](producer: Producer[String, TxEvent, S], config: TrackerConfig)(
+  ](producer: Producer[String, Tx, S], config: TrackerConfig)(
     implicit
     cache: TrackerCache[F],
     explorer: Explorer[S, F]
@@ -58,7 +58,7 @@ object TrackerProgram {
           .evalMap { batch =>
             info"Received batch of ${batch.size} elems."
               .as {
-                batch.toList.flatMap(TxEvent.fromExplorer).filter(Filter.txFilter).map(tx => Record(tx.hash.value, tx))
+                batch.toList.flatMap(Tx.fromExplorer).filter(Filter.txFilter).map(tx => Record(tx.hash.value, tx))
               }
               .flatMap { txn =>
                 (emits[S](txn) |> producer.produce).drain
