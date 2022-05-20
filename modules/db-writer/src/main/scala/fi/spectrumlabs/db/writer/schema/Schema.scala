@@ -22,3 +22,10 @@ trait Schema[T] {
   private def holdersString: String =
     fields.map(_ => "?").mkString(", ")
 }
+
+object Schema {
+  implicit val input: InputSchema             = new InputSchema
+  implicit val output: OutputSchema           = new OutputSchema
+  implicit val transaction: TransactionSchema = new TransactionSchema
+  implicit val redeemer: RedeemerSchema       = new RedeemerSchema
+}

@@ -7,4 +7,4 @@ import tofu.logging.derivation.loggable
 import scala.concurrent.duration.FiniteDuration
 
 @derive(loggable, pureconfigReader)
-final case class WriterConfig(batchSize: Int, timeout: FiniteDuration)
+final case class WriterConfig(batchSize: Int, timeout: FiniteDuration, maxConcurrent: Int)

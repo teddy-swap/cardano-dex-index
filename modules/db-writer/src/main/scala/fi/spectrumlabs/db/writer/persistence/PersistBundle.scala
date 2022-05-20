@@ -2,7 +2,7 @@ package fi.spectrumlabs.db.writer.persistence
 
 import cats.{Applicative, FlatMap}
 import fi.spectrumlabs.db.writer.models._
-import fi.spectrumlabs.db.writer.schema.SchemaBundle
+import fi.spectrumlabs.db.writer.schema.Schema._
 import tofu.doobie.LiftConnectionIO
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
@@ -21,15 +21,12 @@ object PersistBundle {
   def create[D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](
     implicit
     elh: EmbeddableLogHandler[D],
-    txr: Txr[F, D],
-    bundle: SchemaBundle
-  ): PersistBundle[F] = {
-    import bundle._
+    txr: Txr[F, D]
+  ): PersistBundle[F] =
     PersistBundle(
       Persist.create[Input, D, F](input),
       Persist.create[Output, D, F](output),
       Persist.create[Transaction, D, F](transaction),
       Persist.create[Redeemer, D, F](redeemer)
     )
-  }
 }

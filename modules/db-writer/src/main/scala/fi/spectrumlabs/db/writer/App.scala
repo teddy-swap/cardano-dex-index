@@ -11,7 +11,6 @@ import fi.spectrumlabs.db.writer.config._
 import fi.spectrumlabs.db.writer.models._
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
 import fi.spectrumlabs.db.writer.programs.Handler
-import fi.spectrumlabs.db.writer.schema.SchemaBundle
 import fs2.Chunk
 import fs2.kafka.RecordDeserializer
 import tofu.doobie.log.EmbeddableLogHandler
@@ -47,7 +46,6 @@ object App extends EnvApp[AppContext] {
         configs.consumer,
         configs.kafka
       )
-      implicit0(schemaBundle: SchemaBundle)         = SchemaBundle.create
       implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
       handler <- makeHandler(configs.writer)
       _       <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
