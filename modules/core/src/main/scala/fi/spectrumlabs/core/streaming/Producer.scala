@@ -54,7 +54,6 @@ object Producer {
       ProducerSettings[I, K, V]
         .withBootstrapServers(kafka.bootstrapServers.mkString(","))
     KafkaProducer.resource.using(producerSettings).map { prod =>
-      val a: Live[I, K, V] = new Live(conf, prod)
       new Live(conf, prod)
         .imapK(funK[Stream[I, *], Stream[G, *]](_.translate(isoKGI.fromF)) andThen isoKFG.fromF)(
           isoKFG.tof andThen funK[Stream[G, *], Stream[I, *]](_.translate(isoKGI.tof))
