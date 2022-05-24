@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object V {
-    val tofu            = "0.10.3"
+    val tofu            = "0.10.6"
     val derevo          = "0.12.5"
     val catsEffect      = "2.5.3"
     val doobie          = "0.13.4"
@@ -14,6 +14,11 @@ object Dependencies {
     val enumeratum      = "1.7.0"
     val enumeratumCirce = "1.7.0"
     val sttpVersion     = "3.3.11"
+    val redis           = "0.14.0"
+    val jawnFs2Version  = "1.0.0"
+    val fs2KafkaVersion = "1.4.1"
+    val circeVersion    = "0.14.1"
+    val scalaland       = "0.6.1"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -30,6 +35,8 @@ object Dependencies {
     val tofuFs2        = "tf.tofu" %% "tofu-fs2-interop"  % V.tofu
     val tofuZio        = "tf.tofu" %% "tofu-zio-interop"  % V.tofu
 
+    val circeParse = "io.circe" %% "circe-parser" % V.circeVersion
+
     val derevoCats        = "tf.tofu" %% "derevo-cats"              % V.derevo
     val derevoCatsTagless = "tf.tofu" %% "derevo-cats-tagless"      % V.derevo
     val derevoCirce       = "tf.tofu" %% "derevo-circe-magnolia"    % V.derevo
@@ -41,8 +48,8 @@ object Dependencies {
     val doobiePg     = "org.tpolecat" %% "doobie-postgres" % V.doobie
     val doobieHikari = "org.tpolecat" %% "doobie-hikari"   % V.doobie
 
-    val mouse = "org.typelevel" %% "mouse" % V.mouse
-
+    val mouse      = "org.typelevel"         %% "mouse"                  % V.mouse
+    val scalaland  = "io.scalaland"          %% "chimney"                % V.scalaland
     val pureconfig = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureconfig
 
     val sttpCore      = "com.softwaremill.sttp.client3" %% "core"                               % V.sttpVersion
@@ -61,6 +68,10 @@ object Dependencies {
 
     val enumeratum      = "com.beachape" %% "enumeratum"       % V.enumeratum
     val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % V.enumeratumCirce
+
+    val redis4catsEffects = "dev.profunktor"  %% "redis4cats-effects" % V.redis
+    val jawnFs2           = "org.http4s"      %% "jawn-fs2"           % V.jawnFs2Version
+    val kafka             = "com.github.fd4s" %% "fs2-kafka"          % V.fs2KafkaVersion
   }
 
   object CompilerPlugins {
