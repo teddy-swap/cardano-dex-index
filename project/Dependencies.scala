@@ -17,6 +17,8 @@ object Dependencies {
     val redis           = "0.14.0"
     val jawnFs2Version  = "1.0.0"
     val fs2KafkaVersion = "1.4.1"
+    val circeVersion    = "0.14.1"
+    val scalaland       = "0.6.1"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -33,6 +35,8 @@ object Dependencies {
     val tofuFs2        = "tf.tofu" %% "tofu-fs2-interop"  % V.tofu
     val tofuZio        = "tf.tofu" %% "tofu-zio-interop"  % V.tofu
 
+    val circeParse = "io.circe" %% "circe-parser" % V.circeVersion
+
     val derevoCats        = "tf.tofu" %% "derevo-cats"              % V.derevo
     val derevoCatsTagless = "tf.tofu" %% "derevo-cats-tagless"      % V.derevo
     val derevoCirce       = "tf.tofu" %% "derevo-circe-magnolia"    % V.derevo
@@ -44,8 +48,8 @@ object Dependencies {
     val doobiePg     = "org.tpolecat" %% "doobie-postgres" % V.doobie
     val doobieHikari = "org.tpolecat" %% "doobie-hikari"   % V.doobie
 
-    val mouse = "org.typelevel" %% "mouse" % V.mouse
-
+    val mouse      = "org.typelevel"         %% "mouse"                  % V.mouse
+    val scalaland  = "io.scalaland"          %% "chimney"                % V.scalaland
     val pureconfig = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureconfig
 
     val sttpCore      = "com.softwaremill.sttp.client3" %% "core"                               % V.sttpVersion

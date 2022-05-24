@@ -1,9 +1,10 @@
 package fi.spectrumlabs.services
 
+import cats.Functor
 import cats.syntax.functor._
 import cats.tagless.FunctorK
 import fi.spectrumlabs.config.ExplorerConfig
-import fi.spectrumlabs.models.Transaction
+import fi.spectrumlabs.explorer.models.Transaction
 import fs2.Stream
 import io.circe.Json
 import io.circe.jawn.CirceSupportParser
@@ -14,9 +15,11 @@ import sttp.client3.{asStreamAlwaysUnsafe, basicRequest, SttpBackend, UriContext
 import sttp.model.Uri.Segment
 import tofu.MonadThrow
 import tofu.fs2.LiftStream
+import tofu.logging.{Logging, Logs}
+import tofu.syntax.logging._
 
 trait Explorer[S[_], F[_]] {
-  def streamTransactions(offset: Int, limit: Int): S[Transaction]
+  def streamTransactions(offset: Long, limit: Int): S[Transaction]
 }
 
 object Explorer {
@@ -26,19 +29,21 @@ object Explorer {
     cats.tagless.Derive.functorK[Mod]
   }
 
-  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow](config: ExplorerConfig)(
+  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow, I[_]: Functor](config: ExplorerConfig)(
+    implicit
+    backend: SttpBackend[F, Fs2Streams[F]],
+    logs: Logs[I, F]
+  ): I[Explorer[S, F]] =
+    logs.forService[Explorer[S, F]].map(implicit __ => functorK.mapK(new Impl(config))(LiftStream[S, F].liftF))
+
+  private final class Impl[F[_]: MonadThrow: Logging](config: ExplorerConfig)(
     implicit
     backend: SttpBackend[F, Fs2Streams[F]]
-  ): Explorer[S, F] =
-    functorK.mapK(new Impl(config))(LiftStream[S, F].liftF)
-
-  private final class Impl[F[_]: MonadThrow](config: ExplorerConfig)(implicit backend: SttpBackend[F, Fs2Streams[F]])
-    extends Explorer[Stream[F, *], F] {
+  ) extends Explorer[Stream[F, *], F] {
 
     implicit private val facade: Facade[Json] = new CirceSupportParser(None, allowDuplicateKeys = false).facade
 
-    def streamTransactions(offset: Int, limit: Int): Stream[F, Transaction] = {
-      println(s"Going to request next txns")
+    def streamTransactions(offset: Long, limit: Int): Stream[F, Transaction] = {
       val req =
         basicRequest
           .get(
@@ -50,6 +55,7 @@ object Explorer {
           .send(backend)
           .map(_.body)
 
+      Stream.eval(info"Going to request next transactions. Offset is $offset, limit is $limit.") >>
       Stream
         .force(req)
         .chunks
