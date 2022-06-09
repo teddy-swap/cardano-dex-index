@@ -29,4 +29,6 @@ object Schema {
   implicit val transaction: TransactionSchema         = new TransactionSchema
   implicit val redeemer: RedeemerSchema               = new RedeemerSchema
   implicit val executedDeposit: ExecutedDepositSchema = new ExecutedDepositSchema
+  implicit val executedSwap: ExecutedSwapSchema       = new ExecutedSwapSchema
+  implicit val executedRedeem: ExecutedRedeemSchema   = new ExecutedRedeemSchema
 }
