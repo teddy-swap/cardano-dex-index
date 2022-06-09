@@ -24,8 +24,9 @@ trait Schema[T] {
 }
 
 object Schema {
-  implicit val input: InputSchema             = new InputSchema
-  implicit val output: OutputSchema           = new OutputSchema
-  implicit val transaction: TransactionSchema = new TransactionSchema
-  implicit val redeemer: RedeemerSchema       = new RedeemerSchema
+  implicit val input: InputSchema                     = new InputSchema
+  implicit val output: OutputSchema                   = new OutputSchema
+  implicit val transaction: TransactionSchema         = new TransactionSchema
+  implicit val redeemer: RedeemerSchema               = new RedeemerSchema
+  implicit val executedDeposit: ExecutedDepositSchema = new ExecutedDepositSchema
 }

@@ -10,7 +10,7 @@ import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config._
 import fi.spectrumlabs.db.writer.models._
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
-import fi.spectrumlabs.db.writer.programs.Handler
+import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
 import fs2.Chunk
 import fs2.kafka.RecordDeserializer
 import tofu.doobie.log.EmbeddableLogHandler
@@ -22,6 +22,8 @@ import tofu.logging.derivation.loggable.generate
 import zio.interop.catz._
 import zio.{ExitCode, URIO, ZIO}
 import fi.spectrumlabs.core.streaming.serde._
+import fi.spectrumlabs.db.writer.models.db.Deposit
+import fi.spectrumlabs.db.writer.models.streaming.ExecutedOrderEvent
 
 object App extends EnvApp[AppContext] {
 
@@ -42,16 +44,26 @@ object App extends EnvApp[AppContext] {
                                                       )
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
-      implicit0(consumer: Consumer[String, Option[Tx], StreamF, RunF]) = makeConsumer[String, Option[Tx]](
-        configs.consumer,
+      implicit0(txConsumer: Consumer[String, Option[Tx], StreamF, RunF]) = makeConsumer[String, Option[Tx]](
+        configs.txConsumer,
+        configs.kafka
+      )
+      implicit0(executedOpsConsumer: Consumer[String, Option[ExecutedOrderEvent], StreamF, RunF]) = makeConsumer[
+        String,
+        Option[ExecutedOrderEvent]
+      ](
+        configs.executedOpsConsumer,
         configs.kafka
       )
       implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
-      handler <- makeHandler(configs.writer)
-      _       <- Resource.eval(handler.handle.compile.drain).mapK(ul.liftF)
-    } yield ()
+      txHandler          <- makeTxHandler(configs.writer)
+      executedOpsHandler <- makeExecutedOrdersHandler(configs.writer)
+      bundle  = HandlersBundle.make[StreamF](txHandler, executedOpsHandler)
+      program = WriterProgram.create[StreamF, RunF](bundle, configs.writer)
+      r <- Resource.eval(program.run).mapK(ul.liftF)
+    } yield r
 
-  private def makeHandler(config: WriterConfig)(
+  private def makeTxHandler(config: WriterConfig)(
     implicit
     bundle: PersistBundle[RunF],
     consumer: Consumer[_, Option[Tx], StreamF, RunF]
@@ -64,6 +76,19 @@ object App extends EnvApp[AppContext] {
       reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer)
       implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
       handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config)
+    } yield handler
+  }
+
+  private def makeExecutedOrdersHandler(config: WriterConfig)(
+    implicit
+    bundle: PersistBundle[RunF],
+    consumer: Consumer[_, Option[ExecutedOrderEvent], StreamF, RunF]
+  ) = Resource.eval {
+    import bundle._
+    for {
+      deposit <- Handle.createOption[ExecutedOrderEvent, Deposit, InitF, RunF](executedDeposit)
+      implicit0(nelHandlers: NonEmptyList[Handle[ExecutedOrderEvent, RunF]]) = NonEmptyList.of(deposit)
+      handler <- Handler.create[ExecutedOrderEvent, StreamF, RunF, Chunk, InitF](config)
     } yield handler
   }
 

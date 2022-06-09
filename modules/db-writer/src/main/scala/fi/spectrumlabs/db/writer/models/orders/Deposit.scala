@@ -16,6 +16,6 @@ final case class Deposit(
 )
 
 object Deposit {
-  implicit val show: Show[Deposit] = _.toString
+  implicit val show: Show[Deposit]         = _.toString
   implicit val loggable: Loggable[Deposit] = Loggable.show
 }
