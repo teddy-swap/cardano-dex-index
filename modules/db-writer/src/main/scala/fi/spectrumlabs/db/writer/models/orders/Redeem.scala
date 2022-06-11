@@ -9,7 +9,7 @@ final case class Redeem(
   redeemPoolId: PoolId,
   redeemLqIn: Amount,
   redeemLq: Coin,
-  redeemExFee: Long,
-  redeemRewardPkh: String,
-  redeemRewardSPkh: Option[String]
+  redeemExFee: ExFee,
+  redeemRewardPkh: PublicKeyHash,
+  redeemRewardSPkh: Option[PublicKeyHash]
 )

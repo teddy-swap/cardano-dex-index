@@ -9,9 +9,9 @@ import tofu.logging.Loggable
 final case class Deposit(
   depositPoolId: PoolId,
   depositPair: (AssetEntry, AssetEntry),
-  depositExFee: Long,
-  depositRewardPkh: String,
-  depositRewardSPkh: Option[String],
+  depositExFee: ExFee,
+  depositRewardPkh: PublicKeyHash,
+  depositRewardSPkh: Option[PublicKeyHash],
   adaCollateral: Long
 )
 

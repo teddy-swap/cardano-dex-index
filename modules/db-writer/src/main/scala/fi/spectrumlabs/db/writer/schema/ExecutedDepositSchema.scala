@@ -1,23 +1,25 @@
 package fi.spectrumlabs.db.writer.schema
 
-import fi.spectrumlabs.db.writer.models.db.Deposit
+import fi.spectrumlabs.db.writer.models.db.ExecutedDeposit
 
-class ExecutedDepositSchema extends Schema[Deposit] {
-  val tableName: String = "deposit"
+class ExecutedDepositSchema extends Schema[ExecutedDeposit] {
+  val tableName: String = "executed_deposit"
 
   val fields: List[String] = List(
     "pool_nft",
-    "deposit_x",
-    "deposit_y",
-    "deposit_lq",
-    "x_amount",
-    "y_amount",
-    "lq_amount",
+    "coin_x",
+    "coin_y",
+    "coin_lq",
+    "amount_x",
+    "amount_y",
+    "amount_lq",
     "ex_fee",
     "reward_pkh",
     "stake_pkh",
     "collateral_ada",
-    "deposit_order_input_id",
-    "deposit_user_output_id"
+    "order_input_id",
+    "user_output_id",
+    "pool_input_Id",
+    "pool_output_Id"
   )
 }

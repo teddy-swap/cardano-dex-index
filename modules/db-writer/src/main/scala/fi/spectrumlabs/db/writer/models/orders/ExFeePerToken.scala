@@ -5,4 +5,4 @@ import derevo.derive
 import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
-final case class ExFeePerToken(exFeePerTokenNum: Long, exFeePerTokenDen: Long)
+final case class ExFeePerToken(exFeePerTokenNum: ExFee, exFeePerTokenDen: ExFee)

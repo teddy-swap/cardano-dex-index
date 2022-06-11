@@ -11,7 +11,7 @@ object AssetClass {
 
   object syntax {
     implicit class AssetClassOps(val in: AssetClass) extends AnyVal {
-      def asName: String = s"${in.currencySymbol}.${in.tokenName}"
+      def asName: Coin = Coin(s"${in.currencySymbol}.${in.tokenName}")
     }
   }
 }

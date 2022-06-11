@@ -1,22 +1,24 @@
 package fi.spectrumlabs.db.writer.schema
 
-import fi.spectrumlabs.db.writer.models.db.Redeem
+import fi.spectrumlabs.db.writer.models.db.ExecutedRedeem
 
-class ExecutedRedeemSchema extends Schema[Redeem] {
-  val tableName: String = "redeem"
+class ExecutedRedeemSchema extends Schema[ExecutedRedeem] {
+  val tableName: String = "executed_redeem"
 
   val fields: List[String] = List(
     "pool_nft",
-    "redeem_x",
-    "redeem_y",
-    "redeem_lq",
-    "x_amount",
-    "y_amount",
-    "lq_amount",
+    "coin_x",
+    "coin_y",
+    "coin_lq",
+    "amount_x",
+    "amount_y",
+    "amount_lq",
     "ex_fee",
     "reward_pkh",
     "stake_pkh",
-    "redeem_order_input_id",
-    "redeem_user_output_id"
+    "order_input_id",
+    "user_output_id",
+    "pool_input_Id",
+    "pool_output_Id"
   )
 }

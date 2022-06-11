@@ -1,45 +1,58 @@
-create table if not exists deposit (
-     pool_nft Text,
-     deposit_x Text,
-     deposit_y Text,
-     deposit_lq Text,
-     x_amount int,
-     y_amount int,
-     lq_amount int,
-     ex_fee int,
-     reward_pkh Text,
-     stake_pkh Text,
-     collateral_ada int,
-     deposit_order_input_id Text,
-     deposit_user_output_id Text
+create sequence if not exists executed_deposit_seq;
+create sequence if not exists executed_swap_seq;
+create sequence if not exists executed_redeem_seq;
+
+create table if not exists executed_deposit (
+    id Integer not null default nextval('executed_deposit_seq'),
+    pool_nft Text not null,
+    coin_x Text not null,
+    coin_y Text not null,
+    coin_lq Text not null,
+    amount_x Integer not null,
+    amount_y Integer not null,
+    amount_lq Integer not null,
+    ex_fee Integer not null,
+    reward_pkh Text not null,
+    stake_pkh Text default null,
+    collateral_ada Integer not null,
+    order_input_id Text not null,
+    user_output_id Text not null,
+    pool_input_Id Text not null,
+    pool_output_Id Text not null
 );
 
-create table if not exists redeem (
-     pool_nft Text,
-     redeem_x Text,
-     redeem_y Text,
-     redeem_lq Text,
-     x_amount int,
-     y_amount int,
-     lq_amount int,
-     ex_fee int,
-     reward_pkh Text,
-     stake_pkh Text,
-     redeem_order_input_id Text,
-     redeem_user_output_id Text
+create table if not exists executed_redeem (
+    id Integer not null default nextval('executed_redeem_seq'),
+    pool_nft Text not null,
+    coin_x Text not null,
+    coin_y Text not null,
+    coin_lq Text not null,
+    amount_x Integer not null,
+    amount_y Integer not null,
+    amount_lq Integer not null,
+    ex_fee Integer not null,
+    reward_pkh Text not null,
+    stake_pkh Text default null,
+    order_input_id Text not null,
+    user_output_id Text not null,
+    pool_input_Id Text not null,
+    pool_output_Id Text not null
 );
 
-create table if not exists swap (
-     base Text,
-     quote Text,
-     pool_nft Text,
-     ex_fee_per_token_num int,
-     ex_fee_per_token_den int,
-     reward_pkh Text,
-     stake_pkh Text,
-     base_amount int,
-     actual_quote: int,
-     min_quote_amount int,
-     swap_order_input_id Text,
-     swap_user_output_id Text
+create table if not exists executed_swap (
+    id Integer not null default nextval('executed_swap_seq'),
+    base Text not null,
+    quote Text not null,
+    pool_nft Text not null,
+    ex_fee_per_token_num Integer not null,
+    ex_fee_per_token_den Integer not null,
+    reward_pkh Text not null,
+    stake_pkh Text default null,
+    base_amount Integer not null,
+    actual_quote: Integer not null,
+    min_quote_amount Integer not null,
+    order_input_id Text not null,
+    user_output_id Text not null,
+    pool_input_Id Text not null,
+    pool_output_Id Text not null
 );
