@@ -4,8 +4,6 @@ import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
 import tofu.logging.derivation.loggable
 
-//todo: add newtypes for all values
-
 @derive(decoder, encoder, loggable)
 final case class Swap(
   swapPoolId: PoolId,
@@ -14,6 +12,6 @@ final case class Swap(
   swapBase: Coin,
   swapQuote: Coin,
   swapExFee: ExFeePerToken,
-  swapRewardPkh: String,
-  swapRewardSPkh: Option[String]
+  swapRewardPkh: PublicKeyHash,
+  swapRewardSPkh: Option[PublicKeyHash]
 )

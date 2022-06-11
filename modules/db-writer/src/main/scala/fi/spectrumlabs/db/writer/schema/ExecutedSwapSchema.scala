@@ -1,9 +1,9 @@
 package fi.spectrumlabs.db.writer.schema
 
-import fi.spectrumlabs.db.writer.models.db.Swap
+import fi.spectrumlabs.db.writer.models.db.ExecutedSwap
 
-class ExecutedSwapSchema extends Schema[Swap] {
-  val tableName: String = "swap"
+class ExecutedSwapSchema extends Schema[ExecutedSwap] {
+  val tableName: String = "executed_swap"
 
   val fields: List[String] = List(
     "base",
@@ -16,8 +16,9 @@ class ExecutedSwapSchema extends Schema[Swap] {
     "base_amount",
     "actual_quote",
     "min_quote_amount",
-    "collateral_ada",
-    "swap_order_input_id",
-    "swap_user_output_id"
+    "order_input_id",
+    "user_output_id",
+    "pool_input_Id",
+    "pool_output_Id"
   )
 }
