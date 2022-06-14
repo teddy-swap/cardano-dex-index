@@ -9,17 +9,7 @@ import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
 final case class ExecutedRedeem(
-  config: Redeem,
+  redeem: ExecutedOrder[Redeem],
   rewardX: AssetAmount,
-  rewardY: AssetAmount,
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolOutputId: BoxId,
-  poolInputId: BoxId
+  rewardY: AssetAmount
 )
-
-object ExecutedRedeem {
-
-  implicit val fromLedger: FromLedger[ExecutedOrderEvent, Option[ExecutedRedeem]] =
-    (in: ExecutedOrderEvent) => parse(in.stringJson).toOption.flatMap(_.as[ExecutedRedeem].toOption)
-}

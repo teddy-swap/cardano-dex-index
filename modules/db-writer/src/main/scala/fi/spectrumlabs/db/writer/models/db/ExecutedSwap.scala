@@ -4,46 +4,50 @@ import fi.spectrumlabs.db.writer.classes.FromLedger
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import io.circe.parser.parse
+import cats.syntax.either._
+import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedSwap(
   base: Coin,
   quote: Coin,
-  poolId: PoolId,
-  exFeePerTokenNum: ExFee,
-  exFeePerTokenDen: ExFee,
-  rewardPkh: PublicKeyHash,
-  stakePkh: Option[PublicKeyHash],
+  poolId: Coin,
+  exFeePerTokenNum: Long,
+  exFeePerTokenDen: Long,
+  rewardPkh: String,
+  stakePkh: Option[StakePKH],
   baseAmount: Amount,
   actualQuote: Amount,
   minQuoteAmount: Amount,
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolInputId: BoxId,
-  poolOutputId: BoxId
+  orderInputId: TxOutRef,
+  userOutputId: TxOutRef,
+  poolInputId: TxOutRef,
+  poolOutputId: TxOutRef
 )
 
 object ExecutedSwap {
 
   implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedSwap]] =
-    (in: streaming.ExecutedOrderEvent) =>
-      parse(in.stringJson).toOption
-        .flatMap(_.as[streaming.ExecutedSwap].toOption)
+    (in: streaming.ExecutedOrderEvent) => {
+      parse(in.stringJson)
+        .flatMap(_.as[streaming.ExecutedSwap])
+        .toOption
         .map { swap =>
           ExecutedSwap(
-            swap.config.swapBase,
-            swap.config.swapQuote,
-            swap.config.swapPoolId,
-            swap.config.swapExFee.exFeePerTokenNum,
-            swap.config.swapExFee.exFeePerTokenDen,
-            swap.config.swapRewardPkh,
-            swap.config.swapRewardSPkh,
-            swap.config.swapBaseIn,
+            swap.swap.config.base.toCoin,
+            swap.swap.config.quote.toCoin,
+            swap.swap.config.poolId.toCoin,
+            swap.swap.config.exFee.exFeePerTokenNum,
+            swap.swap.config.exFee.exFeePerTokenDen,
+            swap.swap.config.rewardPkh.toString,
+            swap.swap.config.rewardSPkh,
+            swap.swap.config.baseIn,
             swap.actualQuote,
-            swap.config.swapMinQuoteOut,
-            swap.orderInputId,
-            swap.userOutputId,
-            swap.poolInputId,
-            swap.poolOutputId
+            swap.swap.config.minQuoteOut,
+            swap.swap.orderInputId,
+            swap.swap.userOutputId,
+            swap.swap.poolInputId,
+            swap.swap.poolOutputId
           )
-      }
+        }
+    }
 }

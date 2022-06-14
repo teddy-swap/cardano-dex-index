@@ -2,16 +2,16 @@ package fi.spectrumlabs.db.writer.models.orders
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import tofu.logging.derivation.loggable
+import tofu.logging.derivation.{loggable, show}
 
-@derive(decoder, encoder, loggable)
+@derive(decoder, encoder, loggable, show)
 final case class Swap(
-  swapPoolId: PoolId,
-  swapBaseIn: Amount,
-  swapMinQuoteOut: Amount,
-  swapBase: Coin,
-  swapQuote: Coin,
-  swapExFee: ExFeePerToken,
-  swapRewardPkh: PublicKeyHash,
-  swapRewardSPkh: Option[PublicKeyHash]
+  poolId: AssetClass,
+  baseIn: Amount,
+  minQuoteOut: Amount,
+  base: AssetClass,
+  quote: AssetClass,
+  exFee: ExFeePerToken,
+  rewardPkh: PublicKeyHash,
+  rewardSPkh: Option[StakePKH]
 )

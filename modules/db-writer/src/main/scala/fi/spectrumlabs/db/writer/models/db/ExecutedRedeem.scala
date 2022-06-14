@@ -4,9 +4,11 @@ import fi.spectrumlabs.db.writer.classes.FromLedger
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import io.circe.parser.parse
+import cats.syntax.either._
+import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedRedeem(
-  poolId: PoolId,
+  poolId: Coin,
   coinX: Coin,
   coinY: Coin,
   coinLq: Coin,
@@ -15,35 +17,36 @@ final case class ExecutedRedeem(
   amountLq: Amount,
   exFee: ExFee,
   rewardPkh: PublicKeyHash,
-  stakePkh: Option[PublicKeyHash],
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolInputId: BoxId,
-  poolOutputId: BoxId
+  stakePkh: Option[StakePKH],
+  orderInputId: TxOutRef,
+  userOutputId: TxOutRef,
+  poolInputId: TxOutRef,
+  poolOutputId: TxOutRef
 )
 
 object ExecutedRedeem {
 
   implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedRedeem]] =
     (in: streaming.ExecutedOrderEvent) =>
-      parse(in.stringJson).toOption
-        .flatMap(_.as[streaming.ExecutedRedeem].toOption)
+      parse(in.stringJson)
+        .flatMap(_.as[streaming.ExecutedRedeem])
+        .toOption
         .map { redeem =>
           ExecutedRedeem(
-            redeem.config.redeemPoolId,
-            redeem.rewardX.getAsset,
-            redeem.rewardY.getAsset,
-            redeem.config.redeemLq,
-            redeem.rewardX.getAmount,
-            redeem.rewardY.getAmount,
-            redeem.config.redeemLqIn,
-            redeem.config.redeemExFee,
-            redeem.config.redeemRewardPkh,
-            redeem.config.redeemRewardSPkh,
-            redeem.orderInputId,
-            redeem.userOutputId,
-            redeem.poolInputId,
-            redeem.poolOutputId
+            redeem.redeem.config.poolId.toCoin,
+            redeem.rewardX.asset.toCoin,
+            redeem.rewardY.asset.toCoin,
+            redeem.redeem.config.lq.toCoin,
+            redeem.rewardX.amount,
+            redeem.rewardY.amount,
+            redeem.redeem.config.lqIn,
+            redeem.redeem.config.exFee,
+            redeem.redeem.config.rewardPkh,
+            redeem.redeem.config.rewardSPkh,
+            redeem.redeem.orderInputId,
+            redeem.redeem.userOutputId,
+            redeem.redeem.poolInputId,
+            redeem.redeem.poolOutputId
           )
       }
 }

@@ -7,10 +7,6 @@ import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
 final case class ExecutedSwap(
-  config: Swap,
-  actualQuote: Amount,
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolOutputId: BoxId,
-  poolInputId: BoxId
+  swap: ExecutedOrder[Swap],
+  actualQuote: Amount
 )

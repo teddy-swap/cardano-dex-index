@@ -7,10 +7,6 @@ import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
 final case class ExecutedDeposit(
-  config: Deposit,
-  rewardLq: AssetEntry,
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolOutputId: BoxId,
-  poolInputId: BoxId
+  deposit: ExecutedOrder[Deposit],
+  rewardLq: AssetAmount
 )

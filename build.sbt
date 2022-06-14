@@ -121,7 +121,10 @@ lazy val dbWriter = project
     Libraries.pureconfig,
     Libraries.kafka,
     Libraries.tofuFs2,
-    Libraries.mouse
+    Libraries.mouse,
+    Libraries.logbackClassic,
+    Libraries.log4catsCore,
+    Libraries.log4catsSlf4j,
   ))
   .dependsOn(core)
   .settings(assembly / assemblyJarName := "indexes-writer.jar")

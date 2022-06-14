@@ -1,21 +1,16 @@
 package fi.spectrumlabs.db.writer.models.orders
 
-import cats.Show
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import tofu.logging.Loggable
+import tofu.logging.derivation.{loggable, show}
 
-@derive(decoder, encoder)
+@derive(decoder, encoder, show, loggable)
 final case class Deposit(
-  depositPoolId: PoolId,
-  depositPair: (AssetEntry, AssetEntry),
-  depositExFee: ExFee,
-  depositRewardPkh: PublicKeyHash,
-  depositRewardSPkh: Option[PublicKeyHash],
+  poolId: AssetClass,
+  x: AssetAmount,
+  y: AssetAmount,
+  exFee: ExFee,
+  rewardPkh: PublicKeyHash,
+  rewardSPkh: Option[StakePKH],
   adaCollateral: Long
 )
-
-object Deposit {
-  implicit val show: Show[Deposit]         = _.toString
-  implicit val loggable: Loggable[Deposit] = Loggable.show
-}

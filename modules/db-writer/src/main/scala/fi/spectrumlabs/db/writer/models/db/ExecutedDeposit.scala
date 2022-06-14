@@ -7,7 +7,7 @@ import io.circe.parser.parse
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedDeposit(
-  poolId: PoolId,
+  poolId: Coin,
   coinX: Coin,
   coinY: Coin,
   coinLq: Coin,
@@ -15,38 +15,39 @@ final case class ExecutedDeposit(
   amountY: Amount,
   amountLq: Amount,
   exFee: ExFee,
-  rewardPkh: PublicKeyHash,
-  stakePkh: Option[PublicKeyHash],
+  rewardPkh: String,
+  stakePkh: Option[StakePKH],
   collateralAda: Long,
-  orderInputId: BoxId,
-  userOutputId: BoxId,
-  poolInputId: BoxId,
-  poolOutputId: BoxId
+  orderInputId: TxOutRef,
+  userOutputId: TxOutRef,
+  poolInputId: TxOutRef,
+  poolOutputId: TxOutRef
 )
 
 object ExecutedDeposit {
 
   implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedDeposit]] =
     (in: streaming.ExecutedOrderEvent) =>
-      parse(in.stringJson).toOption
-        .flatMap(_.as[streaming.ExecutedDeposit].toOption)
+      parse(in.stringJson)
+        .flatMap(_.as[streaming.ExecutedDeposit])
+        .toOption
         .map { deposit =>
           ExecutedDeposit(
-            deposit.config.depositPoolId,
-            deposit.config.depositPair._1.value._1.asName,
-            deposit.config.depositPair._2.value._1.asName,
-            deposit.rewardLq.value._1.asName,
-            deposit.config.depositPair._1.value._2,
-            deposit.config.depositPair._2.value._2,
-            deposit.rewardLq.value._2,
-            deposit.config.depositExFee,
-            deposit.config.depositRewardPkh,
-            deposit.config.depositRewardSPkh,
-            deposit.config.adaCollateral,
-            deposit.orderInputId,
-            deposit.userOutputId,
-            deposit.poolInputId,
-            deposit.poolOutputId
+            deposit.deposit.config.poolId.toCoin,
+            deposit.deposit.config.x.asset.toCoin,
+            deposit.deposit.config.y.asset.toCoin,
+            deposit.rewardLq.asset.toCoin,
+            deposit.deposit.config.x.amount,
+            deposit.deposit.config.y.amount,
+            deposit.rewardLq.amount,
+            deposit.deposit.config.exFee,
+            deposit.deposit.config.rewardPkh.toString,
+            deposit.deposit.config.rewardSPkh,
+            deposit.deposit.config.adaCollateral,
+            deposit.deposit.orderInputId,
+            deposit.deposit.userOutputId,
+            deposit.deposit.poolInputId,
+            deposit.deposit.poolOutputId
           )
       }
 }

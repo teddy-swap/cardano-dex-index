@@ -2,14 +2,14 @@ package fi.spectrumlabs.db.writer.models.orders
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import tofu.logging.derivation.loggable
+import tofu.logging.derivation.{loggable, show}
 
-@derive(decoder, encoder, loggable)
+@derive(decoder, encoder, loggable, show)
 final case class Redeem(
-  redeemPoolId: PoolId,
-  redeemLqIn: Amount,
-  redeemLq: Coin,
-  redeemExFee: ExFee,
-  redeemRewardPkh: PublicKeyHash,
-  redeemRewardSPkh: Option[PublicKeyHash]
+  poolId: AssetClass,
+  lqIn: Amount,
+  lq: AssetClass,
+  exFee: ExFee,
+  rewardPkh: PublicKeyHash,
+  rewardSPkh: Option[StakePKH]
 )

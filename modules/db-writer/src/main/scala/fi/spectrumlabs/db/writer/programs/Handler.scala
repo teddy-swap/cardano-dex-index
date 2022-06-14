@@ -7,9 +7,11 @@ import cats.{Foldable, Functor, Monad, Parallel}
 import fi.spectrumlabs.core.streaming.Consumer
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config.WriterConfig
+import tofu.Catches
 import tofu.logging.{Logging, Logs}
 import tofu.streams.{Evals, Temporal}
 import tofu.syntax.logging._
+import tofu.syntax.handle._
 import tofu.syntax.monadic._
 import tofu.syntax.streams.evals._
 import tofu.syntax.streams.temporal._
@@ -22,7 +24,7 @@ object Handler {
 
   def create[
     A,
-    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
+    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C]: Catches,
     F[_]: Monad: Parallel,
     C[_]: Foldable,
     I[_]: Functor
@@ -37,7 +39,7 @@ object Handler {
 
   final private class Impl[
     A,
-    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C],
+    S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C]: Catches,
     F[_]: Monad: Parallel: Logging,
     C[_]: Foldable
   ](config: WriterConfig)(implicit consumer: Consumer[_, Option[A], S, F], handlers: NonEmptyList[Handle[A, F]])
@@ -56,6 +58,9 @@ object Handler {
             case Nil =>
               eval(info"Got empty batch in handler. Skip insertion.")
           }
+        }
+        .handleWith { err: Throwable =>
+          eval(error"The err ${err.getMessage} occurred in handler.") >> handle
         }
   }
 }
