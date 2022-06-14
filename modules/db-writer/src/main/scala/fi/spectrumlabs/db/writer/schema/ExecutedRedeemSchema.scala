@@ -19,6 +19,7 @@ class ExecutedRedeemSchema extends Schema[ExecutedRedeem] {
     "order_input_id",
     "user_output_id",
     "pool_input_Id",
-    "pool_output_Id"
+    "pool_output_Id",
+    "timestamp"
   )
 }

@@ -4,7 +4,6 @@ import fi.spectrumlabs.db.writer.classes.FromLedger
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import io.circe.parser.parse
-import cats.syntax.either._
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedRedeem(
@@ -21,7 +20,8 @@ final case class ExecutedRedeem(
   orderInputId: TxOutRef,
   userOutputId: TxOutRef,
   poolInputId: TxOutRef,
-  poolOutputId: TxOutRef
+  poolOutputId: TxOutRef,
+  timestamp: Long
 )
 
 object ExecutedRedeem {
@@ -31,22 +31,23 @@ object ExecutedRedeem {
       parse(in.stringJson)
         .flatMap(_.as[streaming.ExecutedRedeem])
         .toOption
-        .map { redeem =>
+        .map { order =>
           ExecutedRedeem(
-            redeem.redeem.config.poolId.toCoin,
-            redeem.rewardX.asset.toCoin,
-            redeem.rewardY.asset.toCoin,
-            redeem.redeem.config.lq.toCoin,
-            redeem.rewardX.amount,
-            redeem.rewardY.amount,
-            redeem.redeem.config.lqIn,
-            redeem.redeem.config.exFee,
-            redeem.redeem.config.rewardPkh,
-            redeem.redeem.config.rewardSPkh,
-            redeem.redeem.orderInputId,
-            redeem.redeem.userOutputId,
-            redeem.redeem.poolInputId,
-            redeem.redeem.poolOutputId
+            order.redeem.config.poolId.toCoin,
+            order.rewardX.asset.toCoin,
+            order.rewardY.asset.toCoin,
+            order.redeem.config.lq.toCoin,
+            order.rewardX.amount,
+            order.rewardY.amount,
+            order.redeem.config.lqIn,
+            order.redeem.config.exFee,
+            order.redeem.config.rewardPkh,
+            order.redeem.config.rewardSPkh,
+            order.redeem.orderInputId,
+            order.redeem.userOutputId,
+            order.redeem.poolInputId,
+            order.redeem.poolOutputId,
+            order.redeem.timestamp
           )
       }
 }

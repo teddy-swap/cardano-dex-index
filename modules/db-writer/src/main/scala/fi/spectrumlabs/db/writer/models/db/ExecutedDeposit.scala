@@ -21,7 +21,8 @@ final case class ExecutedDeposit(
   orderInputId: TxOutRef,
   userOutputId: TxOutRef,
   poolInputId: TxOutRef,
-  poolOutputId: TxOutRef
+  poolOutputId: TxOutRef,
+  timestamp: Long
 )
 
 object ExecutedDeposit {
@@ -31,23 +32,24 @@ object ExecutedDeposit {
       parse(in.stringJson)
         .flatMap(_.as[streaming.ExecutedDeposit])
         .toOption
-        .map { deposit =>
+        .map { order =>
           ExecutedDeposit(
-            deposit.deposit.config.poolId.toCoin,
-            deposit.deposit.config.x.asset.toCoin,
-            deposit.deposit.config.y.asset.toCoin,
-            deposit.rewardLq.asset.toCoin,
-            deposit.deposit.config.x.amount,
-            deposit.deposit.config.y.amount,
-            deposit.rewardLq.amount,
-            deposit.deposit.config.exFee,
-            deposit.deposit.config.rewardPkh.toString,
-            deposit.deposit.config.rewardSPkh,
-            deposit.deposit.config.adaCollateral,
-            deposit.deposit.orderInputId,
-            deposit.deposit.userOutputId,
-            deposit.deposit.poolInputId,
-            deposit.deposit.poolOutputId
+            order.deposit.config.poolId.toCoin,
+            order.deposit.config.x.asset.toCoin,
+            order.deposit.config.y.asset.toCoin,
+            order.rewardLq.asset.toCoin,
+            order.deposit.config.x.amount,
+            order.deposit.config.y.amount,
+            order.rewardLq.amount,
+            order.deposit.config.exFee,
+            order.deposit.config.rewardPkh.toString,
+            order.deposit.config.rewardSPkh,
+            order.deposit.config.adaCollateral,
+            order.deposit.orderInputId,
+            order.deposit.userOutputId,
+            order.deposit.poolInputId,
+            order.deposit.poolOutputId,
+            order.deposit.timestamp
           )
       }
 }

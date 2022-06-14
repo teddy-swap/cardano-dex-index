@@ -12,7 +12,8 @@ final case class ExecutedOrder[A](
   orderInputId: TxOutRef,
   userOutputId: TxOutRef,
   poolOutputId: TxOutRef,
-  poolInputId: TxOutRef
+  poolInputId: TxOutRef,
+  timestamp: Long
 )
 
 object ExecutedOrder {

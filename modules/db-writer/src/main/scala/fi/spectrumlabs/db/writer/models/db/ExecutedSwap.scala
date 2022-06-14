@@ -4,7 +4,6 @@ import fi.spectrumlabs.db.writer.classes.FromLedger
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import io.circe.parser.parse
-import cats.syntax.either._
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedSwap(
@@ -21,7 +20,8 @@ final case class ExecutedSwap(
   orderInputId: TxOutRef,
   userOutputId: TxOutRef,
   poolInputId: TxOutRef,
-  poolOutputId: TxOutRef
+  poolOutputId: TxOutRef,
+  timestamp: Long
 )
 
 object ExecutedSwap {
@@ -31,22 +31,23 @@ object ExecutedSwap {
       parse(in.stringJson)
         .flatMap(_.as[streaming.ExecutedSwap])
         .toOption
-        .map { swap =>
+        .map { order =>
           ExecutedSwap(
-            swap.swap.config.base.toCoin,
-            swap.swap.config.quote.toCoin,
-            swap.swap.config.poolId.toCoin,
-            swap.swap.config.exFee.exFeePerTokenNum,
-            swap.swap.config.exFee.exFeePerTokenDen,
-            swap.swap.config.rewardPkh.toString,
-            swap.swap.config.rewardSPkh,
-            swap.swap.config.baseIn,
-            swap.actualQuote,
-            swap.swap.config.minQuoteOut,
-            swap.swap.orderInputId,
-            swap.swap.userOutputId,
-            swap.swap.poolInputId,
-            swap.swap.poolOutputId
+            order.swap.config.base.toCoin,
+            order.swap.config.quote.toCoin,
+            order.swap.config.poolId.toCoin,
+            order.swap.config.exFee.exFeePerTokenNum,
+            order.swap.config.exFee.exFeePerTokenDen,
+            order.swap.config.rewardPkh.toString,
+            order.swap.config.rewardSPkh,
+            order.swap.config.baseIn,
+            order.actualQuote,
+            order.swap.config.minQuoteOut,
+            order.swap.orderInputId,
+            order.swap.userOutputId,
+            order.swap.poolInputId,
+            order.swap.poolOutputId,
+            order.swap.timestamp
           )
         }
     }

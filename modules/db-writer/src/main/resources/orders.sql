@@ -2,6 +2,10 @@ create sequence if not exists executed_deposit_seq;
 create sequence if not exists executed_swap_seq;
 create sequence if not exists executed_redeem_seq;
 
+drop table executed_deposit;
+drop table executed_redeem;
+drop table executed_swap;
+
 create table if not exists executed_deposit (
     id Integer not null default nextval('executed_deposit_seq'),
     pool_nft Text not null,
@@ -18,7 +22,8 @@ create table if not exists executed_deposit (
     order_input_id Text not null,
     user_output_id Text not null,
     pool_input_Id Text not null,
-    pool_output_Id Text not null
+    pool_output_Id Text not null,
+    timestamp BIGINT not null
 );
 
 create table if not exists executed_redeem (
@@ -36,7 +41,8 @@ create table if not exists executed_redeem (
     order_input_id Text not null,
     user_output_id Text not null,
     pool_input_Id Text not null,
-    pool_output_Id Text not null
+    pool_output_Id Text not null,
+    timestamp BIGINT not null
 );
 
 create table if not exists executed_swap (
@@ -54,5 +60,6 @@ create table if not exists executed_swap (
     order_input_id Text not null,
     user_output_id Text not null,
     pool_input_Id Text not null,
-    pool_output_Id Text not null
+    pool_output_Id Text not null,
+    timestamp BIGINT not null
 );
