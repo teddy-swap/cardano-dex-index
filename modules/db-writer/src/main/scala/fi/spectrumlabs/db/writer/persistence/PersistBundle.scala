@@ -22,7 +22,8 @@ final case class PersistBundle[F[_]](
 
 object PersistBundle {
 
-  def create[D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](implicit
+  def create[D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](
+    implicit
     elh: EmbeddableLogHandler[D],
     txr: Txr[F, D]
   ): PersistBundle[F] =

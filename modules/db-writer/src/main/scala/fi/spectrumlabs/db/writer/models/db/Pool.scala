@@ -35,6 +35,6 @@ object Pool {
         in.pool.fee.poolFeeDen,
         in.pool.outCollateral,
         in.timestamp
-      )
+    )
 
 }

@@ -7,5 +7,5 @@ final case class HandlersBundle[S[_]](handlers: NonEmptyList[Handler[S]])
 object HandlersBundle {
 
   def make[S[_]](x: Handler[S], xs: List[Handler[S]]): HandlersBundle[S] =
-    HandlersBundle[S](NonEmptyList.of[Handler[S]](x, xs:_*))
+    HandlersBundle[S](NonEmptyList.of[Handler[S]](x, xs: _*))
 }

@@ -42,25 +42,23 @@ object App extends EnvApp[AppContext] {
       trans <- PostgresTransactor.make[InitF]("meta-db-pool", configs.pg)
       implicit0(xa: Txr.Continuational[RunF]) = Txr.continuational[RunF](trans.mapK(wr.liftF))
       implicit0(elh: EmbeddableLogHandler[xa.DB]) <- Resource.eval(
-                                                       doobieLogging.makeEmbeddableHandler[InitF, RunF, xa.DB](
-                                                         "db-writer-db-logging"
-                                                       )
-                                                     )
+                                                      doobieLogging.makeEmbeddableHandler[InitF, RunF, xa.DB](
+                                                        "db-writer-db-logging"
+                                                      )
+                                                    )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
       implicit0(txConsumer: Consumer[String, Option[Tx], StreamF, RunF]) = makeConsumer[String, Option[Tx]](
-                                                                             configs.txConsumer,
-                                                                             configs.kafka
-                                                                           )
-      implicit0(executedOpsConsumer: Consumer[String, Option[ExecutedOrderEvent], StreamF, RunF]) =
-        makeConsumer[
-          String,
-          Option[ExecutedOrderEvent]
-        ](configs.executedOpsConsumer, configs.kafka)
-      implicit0(poolsConsumer: Consumer[String, Option[PoolEvent], StreamF, RunF]) =
-        makeConsumer[
-          String,
-          Option[PoolEvent]
-        ](configs.poolsConsumer, configs.kafka)
+        configs.txConsumer,
+        configs.kafka
+      )
+      implicit0(executedOpsConsumer: Consumer[String, Option[ExecutedOrderEvent], StreamF, RunF]) = makeConsumer[
+        String,
+        Option[ExecutedOrderEvent]
+      ](configs.executedOpsConsumer, configs.kafka)
+      implicit0(poolsConsumer: Consumer[String, Option[PoolEvent], StreamF, RunF]) = makeConsumer[
+        String,
+        Option[PoolEvent]
+      ](configs.poolsConsumer, configs.kafka)
       implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
       txHandler          <- makeTxHandler(configs.writer)
       executedOpsHandler <- makeExecutedOrdersHandler(configs.writer)
@@ -70,7 +68,8 @@ object App extends EnvApp[AppContext] {
       r <- Resource.eval(program.run).mapK(ul.liftF)
     } yield r
 
-  private def makeTxHandler(config: WriterConfig)(implicit
+  private def makeTxHandler(config: WriterConfig)(
+    implicit
     bundle: PersistBundle[RunF],
     consumer: Consumer[_, Option[Tx], StreamF, RunF]
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {
@@ -85,7 +84,8 @@ object App extends EnvApp[AppContext] {
     } yield handler
   }
 
-  private def makeExecutedOrdersHandler(config: WriterConfig)(implicit
+  private def makeExecutedOrdersHandler(config: WriterConfig)(
+    implicit
     bundle: PersistBundle[RunF],
     consumer: Consumer[_, Option[ExecutedOrderEvent], StreamF, RunF]
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {
@@ -99,7 +99,8 @@ object App extends EnvApp[AppContext] {
     } yield handler
   }
 
-  private def makePoolsHandler(config: WriterConfig)(implicit
+  private def makePoolsHandler(config: WriterConfig)(
+    implicit
     bundle: PersistBundle[RunF],
     consumer: Consumer[_, Option[PoolEvent], StreamF, RunF]
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {

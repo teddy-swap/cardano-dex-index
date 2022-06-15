@@ -5,4 +5,4 @@ import derevo.derive
 import tofu.logging.derivation.{loggable, show}
 
 @derive(decoder, encoder, show, loggable)
-final case class PoolFee( poolFeeDen: Long, poolFeeNum: Long)
+final case class PoolFee(poolFeeDen: Long, poolFeeNum: Long)
