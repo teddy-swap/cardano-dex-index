@@ -1,6 +1,7 @@
 create sequence if not exists executed_deposit_seq;
 create sequence if not exists executed_swap_seq;
 create sequence if not exists executed_redeem_seq;
+create sequence if not exists pool_seq;
 
 drop table executed_deposit;
 drop table executed_redeem;
@@ -61,5 +62,20 @@ create table if not exists executed_swap (
     user_output_id Text not null,
     pool_input_Id Text not null,
     pool_output_Id Text not null,
+    timestamp BIGINT not null
+);
+
+create table if not exists pool (
+    id Integer not null default nextval('pool_seq'),
+    pool_id Text not null,
+    reserves_x BIGINT not null,
+    reserves_y BIGINT not null,
+    liquidity BIGINT not null,
+    x Text not null,
+    y Text not null,
+    lq Text not null,
+    pool_fee_num BIGINT not null,
+    pool_fee_den BIGINT not null,
+    out_collateral BIGINT not null,
     timestamp BIGINT not null
 );
