@@ -16,6 +16,7 @@ final case class Pool(
   poolFeeNum: Long,
   poolFeeDen: Long,
   outCollateral: Amount,
+  outputId: TxOutRef,
   timestamp: Long
 )
 
@@ -34,6 +35,7 @@ object Pool {
         in.pool.fee.poolFeeNum,
         in.pool.fee.poolFeeDen,
         in.pool.outCollateral,
+        in.outputId,
         in.timestamp
     )
 

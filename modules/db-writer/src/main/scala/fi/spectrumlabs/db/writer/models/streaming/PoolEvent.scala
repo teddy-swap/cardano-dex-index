@@ -2,8 +2,8 @@ package fi.spectrumlabs.db.writer.models.streaming
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import fi.spectrumlabs.db.writer.models.orders.Pool
+import fi.spectrumlabs.db.writer.models.orders.{Pool, TxOutRef}
 import tofu.logging.derivation.{loggable, show}
 
 @derive(decoder, encoder, show, loggable)
-final case class PoolEvent(pool: Pool, timestamp: Long)
+final case class PoolEvent(pool: Pool, timestamp: Long, outputId: TxOutRef)

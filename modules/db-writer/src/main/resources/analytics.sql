@@ -77,5 +77,6 @@ create table if not exists pool (
     pool_fee_num BIGINT not null,
     pool_fee_den BIGINT not null,
     out_collateral BIGINT not null,
+    output_id Text not null,
     timestamp BIGINT not null
 );

@@ -16,6 +16,7 @@ class PoolSchema extends Schema[Pool] {
     "pool_fee_num",
     "pool_fee_den",
     "out_collateral",
+    "output_id",
     "timestamp"
   )
 }
