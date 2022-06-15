@@ -14,5 +14,6 @@ final case class Transaction(
   invalidBefore: Option[BigInt],
   invalidHereafter: Option[BigInt],
   metadata: Option[Metadata],
-  size: Int
+  size: Int,
+  timestamp: Long
 )

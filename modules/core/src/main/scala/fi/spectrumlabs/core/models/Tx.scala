@@ -15,7 +15,8 @@ final case class Tx(
   invalidBefore: Option[BigInt],
   invalidHereafter: Option[BigInt],
   metadata: Option[Meta],
-  size: Int
+  size: Int,
+  timestamp: Long
 )
 
 object Tx {
@@ -34,6 +35,7 @@ object Tx {
         tx.invalidBefore,
         tx.invalidHereafter,
         tx.metadata.map(Meta.fromExplorer),
-        tx.size
+        tx.size,
+        tx.timestamp
       )
 }

@@ -13,7 +13,8 @@ final case class Transaction(
   invalidBefore: Option[BigInt],
   invalidHereafter: Option[BigInt],
   metadata: Option[Json],
-  size: Int
+  size: Int,
+  timestamp: Long
 )
 
 object Transaction {
@@ -26,6 +27,7 @@ object Transaction {
       in.invalidBefore,
       in.invalidHereafter,
       in.metadata.map(_.asJson),
-      in.size
+      in.size,
+      in.timestamp
   )
 }

@@ -12,6 +12,7 @@ create table if not exists transaction (
     invalid_hereafter BIGINT default null,
     metadata Jsonb default null,
     size Integer not null,
+    timestamp Integer not null,
     primary key (hash, block_index)
 );
 
