@@ -1,9 +1,10 @@
 package fi.spectrumlabs.db.writer.models.db
 
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
-import io.circe.parser.parse
+import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent => Executed}
+import cats.syntax.option._
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class ExecutedSwap(
@@ -26,29 +27,25 @@ final case class ExecutedSwap(
 
 object ExecutedSwap {
 
-  implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedSwap]] =
-    (in: streaming.ExecutedOrderEvent) => {
-      parse(in.stringJson)
-        .flatMap(_.as[streaming.ExecutedSwap])
-        .toOption
-        .map { order =>
-          ExecutedSwap(
-            order.swap.config.base.toCoin,
-            order.swap.config.quote.toCoin,
-            order.swap.config.poolId.toCoin,
-            order.swap.config.exFee.exFeePerTokenNum,
-            order.swap.config.exFee.exFeePerTokenDen,
-            order.swap.config.rewardPkh.toString,
-            order.swap.config.rewardSPkh,
-            order.swap.config.baseIn,
-            order.actualQuote,
-            order.swap.config.minQuoteOut,
-            order.swap.orderInputId,
-            order.swap.userOutputId,
-            order.swap.poolInputId,
-            order.swap.poolOutputId,
-            order.swap.timestamp
-          )
-        }
-    }
+  implicit val toSchema: ToSchema[streaming.ExecutedOrderEvent, Option[ExecutedSwap]] = {
+    case order: Executed.ExecutedSwap =>
+      ExecutedSwap(
+        order.swap.config.base.toCoin,
+        order.swap.config.quote.toCoin,
+        order.swap.config.poolId.toCoin,
+        order.swap.config.exFee.exFeePerTokenNum,
+        order.swap.config.exFee.exFeePerTokenDen,
+        order.swap.config.rewardPkh.toString,
+        order.swap.config.rewardSPkh,
+        order.swap.config.baseIn,
+        order.actualQuote,
+        order.swap.config.minQuoteOut,
+        order.swap.orderInputId,
+        order.swap.userOutputId,
+        order.swap.poolInputId,
+        order.swap.poolOutputId,
+        order.swap.timestamp
+      ).some
+    case _ => none
+  }
 }

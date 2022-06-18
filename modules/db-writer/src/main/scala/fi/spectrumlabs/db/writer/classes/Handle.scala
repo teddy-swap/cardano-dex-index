@@ -9,10 +9,10 @@ import mouse.any._
 import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 
-/** Keeps both FromLedger from A to B and Persist for B.
+/** Keeps both ToSchema from A to B and Persist for B.
   * Contains evidence that A can be mapped into B and B can be persisted.
   *
-  * Takes batch of T elements, maps them using FromLedger, persists them using Persist
+  * Takes batch of T elements, maps them using ToSchema, persists them using Persist
   */
 
 trait Handle[T, F[_]] {
@@ -23,45 +23,45 @@ object Handle {
 
   def createOne[A, B, I[_]: Functor, F[_]: Monad](
     persist: Persist[B, F]
-  )(implicit fromLedger: FromLedger[A, B], logs: Logs[I, F]): I[Handle[A, F]] =
+  )(implicit toSchema: ToSchema[A, B], logs: Logs[I, F]): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplOne[A, B, F](persist))
 
   def createList[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, List[B]],
+    toSchema: ToSchema[A, List[B]],
     logs: Logs[I, F]
   ): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplList[A, B, F](persist))
 
   def createNel[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, NonEmptyList[B]],
+    toSchema: ToSchema[A, NonEmptyList[B]],
     logs: Logs[I, F]
   ): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplNel[A, B, F](persist))
 
   def createOption[A, B, I[_]: Functor, F[_]: Monad](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, Option[B]],
+    toSchema: ToSchema[A, Option[B]],
     logs: Logs[I, F]
   ): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplOption[A, B, F](persist))
 
-  private final class ImplOne[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(implicit fromLedger: FromLedger[A, B])
+  private final class ImplOne[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(implicit toSchema: ToSchema[A, B])
     extends Handle[A, F] {
 
     def handle(in: NonEmptyList[A]): F[Unit] =
-      (in.map(fromLedger(_)) |> persist.persist)
+      (in.map(toSchema(_)) |> persist.persist)
         .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")
   }
 
   private final class ImplList[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, List[B]]
+    toSchema: ToSchema[A, List[B]]
   ) extends Handle[A, F] {
 
     def handle(in: NonEmptyList[A]): F[Unit] =
-      in.toList.flatMap(fromLedger(_)) match {
+      in.toList.flatMap(toSchema(_)) match {
         case x :: xs =>
           (NonEmptyList.of(x, xs: _*) |> persist.persist)
             .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")
@@ -72,11 +72,11 @@ object Handle {
 
   private final class ImplNel[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, NonEmptyList[B]]
+    toSchema: ToSchema[A, NonEmptyList[B]]
   ) extends Handle[A, F] {
 
     def handle(in: NonEmptyList[A]): F[Unit] =
-      in.flatMap(fromLedger(_)).toList match {
+      in.flatMap(toSchema(_)).toList match {
         case x :: xs =>
           (NonEmptyList.of(x, xs: _*) |> persist.persist)
             .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")
@@ -87,11 +87,11 @@ object Handle {
 
   private final class ImplOption[A, B, F[_]: Monad: Logging](persist: Persist[B, F])(
     implicit
-    fromLedger: FromLedger[A, Option[B]]
+    toSchema: ToSchema[A, Option[B]]
   ) extends Handle[A, F] {
 
     def handle(in: NonEmptyList[A]): F[Unit] =
-      in.map(fromLedger(_)).toList.flatten match {
+      in.map(toSchema(_)).toList.flatten match {
         case x :: xs =>
           (NonEmptyList.of(x, xs: _*) |> persist.persist)
             .flatMap(r => info"Finished handle process for $r elements. Batch size was ${in.size}.")

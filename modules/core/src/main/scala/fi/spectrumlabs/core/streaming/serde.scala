@@ -5,6 +5,7 @@ import fs2.kafka._
 import io.circe.parser.parse
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
+import cats.syntax.either._
 
 object serde {
 

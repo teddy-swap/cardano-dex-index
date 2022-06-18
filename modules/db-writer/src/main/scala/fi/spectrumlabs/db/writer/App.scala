@@ -11,8 +11,8 @@ import fi.spectrumlabs.core.streaming.{Consumer, MakeKafkaConsumer}
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config._
 import fi.spectrumlabs.db.writer.models._
-import fi.spectrumlabs.db.writer.models.db.{ExecutedDeposit, ExecutedRedeem, ExecutedSwap}
-import fi.spectrumlabs.db.writer.models.streaming.ExecutedOrderEvent
+import fi.spectrumlabs.db.writer.models.db.{ExecutedDeposit, ExecutedRedeem, ExecutedSwap, Pool}
+import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent, PoolEvent}
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
 import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
 import fs2.Chunk
@@ -55,10 +55,15 @@ object App extends EnvApp[AppContext] {
         String,
         Option[ExecutedOrderEvent]
       ](configs.executedOpsConsumer, configs.kafka)
+      implicit0(poolsConsumer: Consumer[String, Option[PoolEvent], StreamF, RunF]) = makeConsumer[
+        String,
+        Option[PoolEvent]
+      ](configs.poolsConsumer, configs.kafka)
       implicit0(persistBundle: PersistBundle[RunF]) = PersistBundle.create[xa.DB, RunF]
       txHandler          <- makeTxHandler(configs.writer)
       executedOpsHandler <- makeExecutedOrdersHandler(configs.writer)
-      bundle  = HandlersBundle.make[StreamF](txHandler, executedOpsHandler)
+      poolsHandler       <- makePoolsHandler(configs.writer)
+      bundle  = HandlersBundle.make[StreamF](txHandler, List(executedOpsHandler, poolsHandler))
       program = WriterProgram.create[StreamF, RunF](bundle, configs.writer)
       r <- Resource.eval(program.run).mapK(ul.liftF)
     } yield r
@@ -91,6 +96,19 @@ object App extends EnvApp[AppContext] {
       redeem  <- Handle.createOption[ExecutedOrderEvent, ExecutedRedeem, InitF, RunF](executedRedeem)
       implicit0(nelHandlers: NonEmptyList[Handle[ExecutedOrderEvent, RunF]]) = NonEmptyList.of(deposit, swap, redeem)
       handler <- Handler.create[ExecutedOrderEvent, StreamF, RunF, Chunk, InitF](config)
+    } yield handler
+  }
+
+  private def makePoolsHandler(config: WriterConfig)(
+    implicit
+    bundle: PersistBundle[RunF],
+    consumer: Consumer[_, Option[PoolEvent], StreamF, RunF]
+  ): Resource[InitF, Handler[StreamF]] = Resource.eval {
+    import bundle._
+    for {
+      pool <- Handle.createOne[PoolEvent, Pool, InitF, RunF](pool)
+      implicit0(nelHandlers: NonEmptyList[Handle[PoolEvent, RunF]]) = NonEmptyList.of(pool)
+      handler <- Handler.create[PoolEvent, StreamF, RunF, Chunk, InitF](config)
     } yield handler
   }
 

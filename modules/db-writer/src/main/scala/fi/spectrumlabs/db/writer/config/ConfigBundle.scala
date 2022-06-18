@@ -13,6 +13,7 @@ final case class ConfigBundle(
   pg: PgConfig,
   txConsumer: ConsumerConfig,
   executedOpsConsumer: ConsumerConfig,
+  poolsConsumer: ConsumerConfig,
   kafka: KafkaConfig,
   writer: WriterConfig
 )
