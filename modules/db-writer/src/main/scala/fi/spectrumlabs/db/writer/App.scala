@@ -66,50 +66,6 @@ object App extends EnvApp[AppContext] {
       r <- Resource.eval(program.run).mapK(ul.liftF)
     } yield r
 
-  private def makeTxHandler(config: WriterConfig)(
-    implicit
-    bundle: PersistBundle[RunF],
-    consumer: Consumer[_, Option[Tx], StreamF, RunF]
-  ): Resource[InitF, Handler[StreamF]] = Resource.eval {
-    import bundle._
-    for {
-      txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction)
-      in   <- Handle.createNel[Tx, Input, InitF, RunF](input)
-      out  <- Handle.createNel[Tx, Output, InitF, RunF](output)
-      reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer)
-      implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
-      handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config)
-    } yield handler
-  }
-
-  private def makeExecutedOrdersHandler(config: WriterConfig)(
-    implicit
-    bundle: PersistBundle[RunF],
-    consumer: Consumer[_, Option[ExecutedOrderEvent], StreamF, RunF]
-  ): Resource[InitF, Handler[StreamF]] = Resource.eval {
-    import bundle._
-    for {
-      deposit <- Handle.createOption[ExecutedOrderEvent, ExecutedDeposit, InitF, RunF](executedDeposit)
-      swap    <- Handle.createOption[ExecutedOrderEvent, ExecutedSwap, InitF, RunF](executedSwap)
-      redeem  <- Handle.createOption[ExecutedOrderEvent, ExecutedRedeem, InitF, RunF](executedRedeem)
-      implicit0(nelHandlers: NonEmptyList[Handle[ExecutedOrderEvent, RunF]]) = NonEmptyList.of(deposit, swap, redeem)
-      handler <- Handler.create[ExecutedOrderEvent, StreamF, RunF, Chunk, InitF](config)
-    } yield handler
-  }
-
-  private def makePoolsHandler(config: WriterConfig)(
-    implicit
-    bundle: PersistBundle[RunF],
-    consumer: Consumer[_, Option[PoolEvent], StreamF, RunF]
-  ): Resource[InitF, Handler[StreamF]] = Resource.eval {
-    import bundle._
-    for {
-      pool <- Handle.createOne[PoolEvent, Pool, InitF, RunF](pool)
-      implicit0(nelHandlers: NonEmptyList[Handle[PoolEvent, RunF]]) = NonEmptyList.of(pool)
-      handler <- Handler.create[PoolEvent, StreamF, RunF, Chunk, InitF](config)
-    } yield handler
-  }
-
   private def makeConsumer[K: RecordDeserializer[RunF, *], V: RecordDeserializer[RunF, *]](
     conf: ConsumerConfig,
     kafka: KafkaConfig

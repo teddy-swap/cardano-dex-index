@@ -7,8 +7,8 @@ import fi.spectrumlabs.core.streaming.Consumer
 import fi.spectrumlabs.db.writer.App.{InitF, RunF, StreamF}
 import fi.spectrumlabs.db.writer.classes.Handle
 import fi.spectrumlabs.db.writer.config.WriterConfig
-import fi.spectrumlabs.db.writer.models.db.{ExecutedDeposit, ExecutedRedeem, ExecutedSwap}
-import fi.spectrumlabs.db.writer.models.streaming.ExecutedOrderEvent
+import fi.spectrumlabs.db.writer.models.db.{ExecutedDeposit, ExecutedRedeem, ExecutedSwap, Pool}
+import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent, PoolEvent}
 import fi.spectrumlabs.db.writer.models.{Input, Output, Redeemer, Transaction}
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
 import fi.spectrumlabs.db.writer.programs.Handler
@@ -21,6 +21,7 @@ object Handlers {
 
   final val TxHandlerName             = "Tx"
   final val ExecutedOrdersHandlerName = "ExecutedOrder"
+  final val PoolsHandler = "PoolsHandler"
 
   def makeTxHandler(config: WriterConfig)(
     implicit
@@ -54,4 +55,19 @@ object Handlers {
       handler <- Handler.create[ExecutedOrderEvent, StreamF, RunF, Chunk, InitF](config, ExecutedOrdersHandlerName)
     } yield handler
   }
+
+  def makePoolsHandler(config: WriterConfig)(
+    implicit
+    bundle: PersistBundle[RunF],
+    consumer: Consumer[_, Option[PoolEvent], StreamF, RunF],
+    logs: Logs[InitF, RunF]
+  ): Resource[InitF, Handler[StreamF]] = Resource.eval {
+    import bundle._
+    for {
+      pool <- Handle.createOne[PoolEvent, Pool, InitF, RunF](pool)
+      implicit0(nelHandlers: NonEmptyList[Handle[PoolEvent, RunF]]) = NonEmptyList.of(pool)
+      handler <- Handler.create[PoolEvent, StreamF, RunF, Chunk, InitF](config, PoolsHandler)
+    } yield handler
+  }
+
 }
