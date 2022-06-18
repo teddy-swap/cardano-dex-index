@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models.db
 
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
@@ -28,7 +28,7 @@ final case class ExecutedDeposit(
 
 object ExecutedDeposit {
 
-  implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedDeposit]] = {
+  implicit val toSchema: ToSchema[streaming.ExecutedOrderEvent, Option[ExecutedDeposit]] = {
     case order: Executed.ExecutedDeposit =>
       ExecutedDeposit(
         order.deposit.config.poolId.toCoin,

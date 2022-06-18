@@ -3,7 +3,7 @@ package fi.spectrumlabs.db.writer.models
 import cats.data.NonEmptyList
 import fi.spectrumlabs.explorer.models._
 import fi.spectrumlabs.core.models.Tx
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import io.circe.Json
 import io.circe.syntax._
 
@@ -25,7 +25,7 @@ final case class Output(
 
 object Output {
 
-  implicit val fromLedger: FromLedger[Tx, NonEmptyList[Output]] = (in: Tx) =>
+  implicit val toSchema: ToSchema[Tx, NonEmptyList[Output]] = (in: Tx) =>
     in.outputs.map { o =>
       Output(
         in.hash,

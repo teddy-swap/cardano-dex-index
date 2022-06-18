@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models.db
 
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent => Executed}
@@ -27,7 +27,7 @@ final case class ExecutedSwap(
 
 object ExecutedSwap {
 
-  implicit val fromLedger: FromLedger[streaming.ExecutedOrderEvent, Option[ExecutedSwap]] = {
+  implicit val toSchema: ToSchema[streaming.ExecutedOrderEvent, Option[ExecutedSwap]] = {
     case order: Executed.ExecutedSwap =>
       ExecutedSwap(
         order.swap.config.base.toCoin,

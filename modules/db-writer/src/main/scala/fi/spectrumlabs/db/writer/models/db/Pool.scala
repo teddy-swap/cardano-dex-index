@@ -1,6 +1,6 @@
 package fi.spectrumlabs.db.writer.models.db
 
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
@@ -22,7 +22,7 @@ final case class Pool(
 
 object Pool {
 
-  implicit val fromLedger: FromLedger[streaming.PoolEvent, Pool] =
+  implicit val toSchema: ToSchema[streaming.PoolEvent, Pool] =
     (in: streaming.PoolEvent) =>
       Pool(
         in.pool.id.toCoin,
