@@ -21,7 +21,7 @@ object Handlers {
 
   final val TxHandlerName             = "Tx"
   final val ExecutedOrdersHandlerName = "ExecutedOrder"
-  final val PoolsHandler = "PoolsHandler"
+  final val PoolsHandler              = "PoolsHandler"
 
   def makeTxHandler(config: WriterConfig)(
     implicit
