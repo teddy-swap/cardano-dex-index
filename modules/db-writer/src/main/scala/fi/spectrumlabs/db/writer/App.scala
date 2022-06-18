@@ -1,6 +1,5 @@
 package fi.spectrumlabs.db.writer
 
-import cats.data.NonEmptyList
 import cats.effect.{Blocker, Resource}
 import fi.spectrumlabs.core.EnvApp
 import fi.spectrumlabs.core.models.Tx
@@ -8,14 +7,13 @@ import fi.spectrumlabs.core.streaming.Consumer.Aux
 import fi.spectrumlabs.core.streaming.config.{ConsumerConfig, KafkaConfig}
 import fi.spectrumlabs.core.streaming.serde._
 import fi.spectrumlabs.core.streaming.{Consumer, MakeKafkaConsumer}
-import fi.spectrumlabs.db.writer.classes.Handle
+import fi.spectrumlabs.db.writer.Handlers._
 import fi.spectrumlabs.db.writer.config._
 import fi.spectrumlabs.db.writer.models._
 import fi.spectrumlabs.db.writer.models.db.{ExecutedDeposit, ExecutedRedeem, ExecutedSwap, Pool}
 import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent, PoolEvent}
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
-import fi.spectrumlabs.db.writer.programs.{Handler, HandlersBundle, WriterProgram}
-import fs2.Chunk
+import fi.spectrumlabs.db.writer.programs.{HandlersBundle, WriterProgram}
 import fs2.kafka.RecordDeserializer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
@@ -39,11 +37,11 @@ object App extends EnvApp[AppContext] {
       configs <- Resource.eval(ConfigBundle.load[InitF](configPathOpt, blocker))
       ctx                                = AppContext.init(configs)
       implicit0(ul: Unlift[RunF, InitF]) = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
-      trans <- PostgresTransactor.make[InitF]("meta-db-pool", configs.pg)
+      trans <- PostgresTransactor.make[InitF]("db-writer-pool", configs.pg)
       implicit0(xa: Txr.Continuational[RunF]) = Txr.continuational[RunF](trans.mapK(wr.liftF))
       implicit0(elh: EmbeddableLogHandler[xa.DB]) <- Resource.eval(
                                                       doobieLogging.makeEmbeddableHandler[InitF, RunF, xa.DB](
-                                                        "db-writer-db-logging"
+                                                        "db-writer-logging"
                                                       )
                                                     )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
