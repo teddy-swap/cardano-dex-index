@@ -133,7 +133,13 @@ lazy val api = project
     Libraries.tofuZio,
     Libraries.pureconfig,
     Libraries.tofuFs2,
-    Libraries.mouse
+    Libraries.mouse,
+    Libraries.tapirCirce,
+    Libraries.tapirHttp4s,
+    Libraries.tapirRedoc,
+    Libraries.tapirDocs,
+    Libraries.tapirOpenApi,
+    Libraries.http4sServer
   ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)

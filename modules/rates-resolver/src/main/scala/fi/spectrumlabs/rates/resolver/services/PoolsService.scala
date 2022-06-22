@@ -25,20 +25,7 @@ object PoolsService {
     def getAllLatest(minLiquidityValue: Long): F[List[Pool]] =
       pools
         .getAllLatest(minLiquidityValue)
-        .map(
-          _.flatMap { poolDb =>
-            println(poolDb)
-            for {
-              x <- AssetClass.fromString(poolDb.x)
-              y <- AssetClass.fromString(poolDb.y)
-            } yield
-              Pool(
-                PoolId(poolDb.poolId),
-                AssetAmount(x, Amount(poolDb.xReserves)),
-                AssetAmount(y, Amount(poolDb.yReserves))
-              )
-          }
-        )
+        .map(_.flatMap(Pool.fromDb))
   }
 
   final class Tracing[F[_]: Monad: Logging] extends PoolsService[Mid[F, *]] {

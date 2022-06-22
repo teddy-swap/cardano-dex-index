@@ -19,6 +19,7 @@ object Dependencies {
     val fs2KafkaVersion = "1.4.1"
     val circeVersion    = "0.14.1"
     val scalaland       = "0.6.1"
+    val http4s          = "0.22.11"
     val catsRetry       = "2.1.1"
 
     val betterMonadicFor = "0.3.1"
@@ -67,6 +68,8 @@ object Dependencies {
     val tapirDocs    = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs"       % V.tapir
     val tapirOpenApi = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % V.tapir
     val tapirRedoc   = "com.softwaremill.sttp.tapir" %% "tapir-redoc-http4s"       % V.tapir
+
+    val http4sServer = "org.http4s" %% "http4s-blaze-server" % V.http4s
 
     val newtype = "io.estatico" %% "newtype" % V.newtype
 
