@@ -36,17 +36,21 @@ object App extends EnvApp[AppContext] {
       implicit0(ul: Unlift[RunF, InitF]) = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
       trans <- PostgresTransactor.make[InitF]("markets-api-db-pool", configs.pg)
       implicit0(xa: Txr.Continuational[RunF]) = Txr.continuational[RunF](trans.mapK(wr.liftF))
-      implicit0(elh: EmbeddableLogHandler[xa.DB]) <-
-        Resource.eval(doobieLogging.makeEmbeddableHandler[InitF, RunF, xa.DB]("markets-api-db-logging"))
+      implicit0(elh: EmbeddableLogHandler[xa.DB]) <- Resource.eval(
+                                                      doobieLogging.makeEmbeddableHandler[InitF, RunF, xa.DB](
+                                                        "markets-api-db-logging"
+                                                      )
+                                                    )
       implicit0(logsDb: Logs[InitF, xa.DB]) = Logs.sync[InitF, xa.DB]
       implicit0(redis: RedisCommands[RunF, String, String]) <- mkRedis[String, String, InitF, RunF](
-                                                                 configs.redis,
-                                                                 stringCodec
-                                                               )
+                                                                configs.redis,
+                                                                stringCodec
+                                                              )
       implicit0(poolsRepo: PoolsRepo[RunF]) <- Resource.eval(PoolsRepo.create[InitF, xa.DB, RunF])
       implicit0(ratesRepo: RatesRepo[RunF]) <- Resource.eval(RatesRepo.create[InitF, RunF])
-      implicit0(service: AnalyticsService[RunF]) <-
-        Resource.eval(AnalyticsService.create[InitF, RunF](configs.marketsApi))
+      implicit0(service: AnalyticsService[RunF]) <- Resource.eval(
+                                                     AnalyticsService.create[InitF, RunF](configs.marketsApi)
+                                                   )
       server <- HttpServer.make[InitF, RunF](configs.http, runtime.platform.executor.asEC)
     } yield server
 }

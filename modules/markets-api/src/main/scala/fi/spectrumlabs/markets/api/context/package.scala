@@ -6,6 +6,7 @@ import tofu.{WithContext, WithLocal}
 import tofu.logging.derivation.loggable
 
 package object context {
+
   @derive(loggable)
   @newtype final case class TraceId(value: String)
 
