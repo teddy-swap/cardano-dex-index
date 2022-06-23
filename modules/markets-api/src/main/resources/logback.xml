@@ -35,6 +35,7 @@
     <logger name="fi.spectrumlabs" level="TRACE"/>
     <logger name="org.apache.kafka" level="OFF"/>
     <logger name="sttp.client3.asynchttpclient" level="OFF"/>
+    <logger name="com.zaxxer.hikari.pool.HikariPool" level="OFF"/>
     <logger name="io.lettuce.core" level="OFF"/>
     <root level="TRACE">
         <appender-ref ref="STDOUT"/>

@@ -14,6 +14,7 @@ import tofu.syntax.logging._
 import tofu.syntax.monadic._
 
 import scala.concurrent.duration.FiniteDuration
+import scala.math.BigDecimal.RoundingMode
 
 @derive(representableK)
 trait AnalyticsService[F[_]] {
@@ -42,11 +43,11 @@ object AnalyticsService {
         rateY  <- OptionT(ratesRepo.get(pool.y.asset))
         xTvl     = pool.x.amount.value * rateX.rate
         yTvl     = pool.y.amount.value * rateY.rate
-        totalTvl = xTvl + yTvl
+        totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
         poolVolume <- OptionT(poolsRepo.getPoolVolume(pool, period))
-        xVolume     = poolVolume.xVolume * rateX.rate
-        yVolume     = poolVolume.yVolume * rateY.rate
-        totalVolume = xVolume + yVolume
+        xVolume     = poolVolume.xVolume.getOrElse(BigDecimal(0)) * rateX.rate
+        yVolume     = poolVolume.yVolume.getOrElse(BigDecimal(0)) * rateY.rate
+        totalVolume = (xVolume + yVolume).setScale(0, RoundingMode.HALF_UP)
       } yield PoolInfo(totalTvl, totalVolume)).value
   }
 

@@ -8,6 +8,7 @@ import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
 import fi.spectrumlabs.markets.api.models.PoolVolume
 import fi.spectrumlabs.markets.api.repositories._
 import scala.concurrent.duration.FiniteDuration
+import cats.syntax.show._
 
 final class PoolsSql(implicit lh: LogHandler) {
 
@@ -24,8 +25,8 @@ final class PoolsSql(implicit lh: LogHandler) {
   def getPoolVolume(pool: DomainPool, period: FiniteDuration): Query0[PoolVolume] =
     sql"""
          |select * from
-         |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.x.asset} and timestamp > $period) x
+         |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.x.asset.show} and timestamp > ${period.toSeconds}) x
          |	CROSS JOIN
-         |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.y.asset} and timestamp > $period) y
+         |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.y.asset.show} and timestamp > ${period.toSeconds}) y
        """.stripMargin.query[PoolVolume]
 }

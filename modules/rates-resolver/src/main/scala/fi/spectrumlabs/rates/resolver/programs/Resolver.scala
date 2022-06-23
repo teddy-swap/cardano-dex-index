@@ -68,7 +68,7 @@ object Resolver {
                       .map(ResolvedRate(pool, _))
                   }
 
-              (resolvedByAda ::: resolvedViaAda).map(rate => rate.copy(rate.asset, rate.rate * adaPrice.rate))
+              (adaPrice :: resolvedByAda ::: resolvedViaAda).map(rate => rate.copy(rate.asset, rate.rate * adaPrice.rate))
             }
         }
         .flatTap(resolved => info"Resolved rates are: $resolved.")
