@@ -43,7 +43,7 @@ object App extends EnvApp[AppContext] {
                                                               longCodec
                                                             )
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend[AppContext, InitF, RunF](ctx, blocker)
-      implicit0(cache: TrackerCache[RunF]) = TrackerCache.create[InitF, RunF]
+      implicit0(cache: TrackerCache[RunF])                    <- Resource.eval(TrackerCache.create[InitF, RunF](configs.redis))
       implicit0(explorer: Explorer[StreamF, RunF]) <- Resource.eval(
                                                        Explorer.create[StreamF, RunF, InitF](configs.explorer)
                                                      )
