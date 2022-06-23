@@ -10,6 +10,9 @@ import sttp.tapir.json.circe._
 import cats.syntax.option._
 import io.circe.generic.auto._
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
+
 package object endpoints {
   val V1Prefix: EndpointInput[Unit] = "v1"
 
@@ -23,4 +26,21 @@ package object endpoints {
           oneOfDefaultMapping(jsonBody[HttpError.Unknown].description("unknown"))
         )
       )
+
+  implicit val codec: Codec.PlainCodec[FiniteDuration] = Codec.string
+    .mapDecode(fromString)(_.toString)
+
+  private def fromString(s: String): DecodeResult[FiniteDuration] =
+    Option(FiniteDuration(Duration(s).toSeconds, SECONDS)) match {
+      case Some(value) => DecodeResult.Value(value)
+      case None        => DecodeResult.Mismatch("Expected correct ts string", s)
+    }
+
+  def period: EndpointInput[FiniteDuration] =
+    query[Long]("period")
+      .validate(Validator.min(0))
+      .validate(Validator.max(Long.MaxValue))
+      .map { input =>
+        FiniteDuration(Duration(input, TimeUnit.SECONDS).toSeconds, SECONDS)
+      }(_.toSeconds)
 }

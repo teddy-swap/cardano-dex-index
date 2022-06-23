@@ -1,26 +1,29 @@
 package fi.spectrumlabs.markets.api.repositories.repos
 
-import cats.tagless.Derive.functorK
 import cats.{FlatMap, Functor}
 import derevo.derive
 import doobie.ConnectionIO
 import fi.spectrumlabs.core.models.db.Pool
+import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
+import fi.spectrumlabs.markets.api.models.PoolVolume
 import fi.spectrumlabs.markets.api.repositories.sql.PoolsSql
 import tofu.doobie.LiftConnectionIO
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
 import tofu.higherKind.Mid
+import tofu.higherKind.derived.representableK
 import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import tofu.syntax.monadic._
-import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
+import cats.tagless.syntax.functorK._
+
 import scala.concurrent.duration.FiniteDuration
 
-@derive(functorK)
+@derive(representableK)
 trait PoolsRepo[D[_]] {
   def getPoolById(poolId: String, minLiquidityValue: Long): D[Option[Pool]]
 
-  def getPoolVolume(pool: DomainPool, period: FiniteDuration): D[Option[(BigDecimal, BigDecimal)]]
+  def getPoolVolume(pool: DomainPool, period: FiniteDuration): D[Option[PoolVolume]]
 }
 
 object PoolsRepo {
@@ -42,7 +45,7 @@ object PoolsRepo {
     def getPoolById(poolId: String, minLiquidityValue: Long): ConnectionIO[Option[Pool]] =
       sql.getPool(poolId, minLiquidityValue).option
 
-    def getPoolVolume(pool: DomainPool, period: FiniteDuration): ConnectionIO[Option[(BigDecimal, BigDecimal)]] =
+    def getPoolVolume(pool: DomainPool, period: FiniteDuration): ConnectionIO[Option[PoolVolume]] =
       sql.getPoolVolume(pool, period).option
   }
 
@@ -55,7 +58,7 @@ object PoolsRepo {
         _ <- trace"Pool from db is $r"
       } yield r
 
-    def getPoolVolume(pool: DomainPool, period: FiniteDuration): Mid[F, Option[(BigDecimal, BigDecimal)]] =
+    def getPoolVolume(pool: DomainPool, period: FiniteDuration): Mid[F, Option[PoolVolume]] =
       for {
         _ <- trace"Going to get pool volume for $pool with period $period"
         r <- _

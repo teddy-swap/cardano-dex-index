@@ -1,6 +1,7 @@
 package fi.spectrumlabs.core.models.domain
 
 import derevo.derive
+import doobie.util.Put
 import tofu.logging.derivation.loggable
 
 @derive(loggable)

@@ -2,32 +2,34 @@ package fi.spectrumlabs.markets.api.services
 
 import cats.data.OptionT
 import cats.{Functor, Monad}
+import derevo.derive
 import fi.spectrumlabs.core.models.domain.Pool
 import fi.spectrumlabs.markets.api.configs.MarketsApiConfig
 import fi.spectrumlabs.markets.api.models.PoolInfo
 import fi.spectrumlabs.markets.api.repositories.repos.{PoolsRepo, RatesRepo}
 import tofu.higherKind.Mid
+import tofu.higherKind.derived.representableK
 import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import tofu.syntax.monadic._
 
 import scala.concurrent.duration.FiniteDuration
 
+@derive(representableK)
 trait AnalyticsService[F[_]] {
   def getPoolInfo(poolId: String, period: FiniteDuration): F[Option[PoolInfo]]
 }
 
 object AnalyticsService {
 
-  def create[I[_]: Functor, F[_]: Monad](config: MarketsApiConfig)(
-    implicit
+  def create[I[_]: Functor, F[_]: Monad](config: MarketsApiConfig)(implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F],
     logs: Logs[I, F]
-  ): I[AnalyticsService[F]] = logs.forService[F].map(implicit __ => new Tracing[F] attach new Impl[F](config))
+  ): I[AnalyticsService[F]] =
+    logs.forService[AnalyticsService[F]].map(implicit __ => new Tracing[F] attach new Impl[F](config))
 
-  final private class Impl[F[_]: Monad](config: MarketsApiConfig)(
-    implicit
+  final private class Impl[F[_]: Monad](config: MarketsApiConfig)(implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F]
   ) extends AnalyticsService[F] {
@@ -41,9 +43,9 @@ object AnalyticsService {
         xTvl     = pool.x.amount.value * rateX.rate
         yTvl     = pool.y.amount.value * rateY.rate
         totalTvl = xTvl + yTvl
-        (volumeRawX, volumeRawY) <- OptionT(poolsRepo.getPoolVolume(pool, period))
-        xVolume     = volumeRawX * rateX.rate
-        yVolume     = volumeRawY * rateY.rate
+        poolVolume <- OptionT(poolsRepo.getPoolVolume(pool, period))
+        xVolume     = poolVolume.xVolume * rateX.rate
+        yVolume     = poolVolume.yVolume * rateY.rate
         totalVolume = xVolume + yVolume
       } yield PoolInfo(totalTvl, totalVolume)).value
   }

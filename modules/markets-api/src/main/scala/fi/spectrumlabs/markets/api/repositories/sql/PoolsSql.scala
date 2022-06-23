@@ -5,7 +5,8 @@ import doobie.implicits._
 import doobie.util.query.Query0
 import fi.spectrumlabs.core.models.db.Pool
 import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
-
+import fi.spectrumlabs.markets.api.models.PoolVolume
+import fi.spectrumlabs.markets.api.repositories._
 import scala.concurrent.duration.FiniteDuration
 
 final class PoolsSql(implicit lh: LogHandler) {
@@ -20,11 +21,11 @@ final class PoolsSql(implicit lh: LogHandler) {
          |plast.id = p.id AND p.reserves_x >= $minLiquidityValue AND p.reserves_y >= $minLiquidityValue and pool_id = $poolId;
        """.stripMargin.query[Pool]
 
-  def getPoolVolume(pool: DomainPool, period: FiniteDuration): Query0[(BigDecimal, BigDecimal)] =
+  def getPoolVolume(pool: DomainPool, period: FiniteDuration): Query0[PoolVolume] =
     sql"""
          |select * from
          |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.x.asset} and timestamp > $period) x
          |	CROSS JOIN
          |	(select sum(actual_quote) from executed_swap WHERE pool_nft = ${pool.id} and base = ${pool.y.asset} and timestamp > $period) y
-       """.stripMargin.query[(BigDecimal, BigDecimal)]
+       """.stripMargin.query[PoolVolume]
 }

@@ -8,6 +8,10 @@ import tofu.logging.derivation.loggable
 import tofu.syntax.raise._
 import tofu.syntax.monadic._
 import cats.syntax.option._
+import cats.syntax.show._
+import doobie.util.Put
+
+import java.sql.PreparedStatement
 
 @derive(loggable, encoder, decoder)
 final case class AssetClass(currencySymbol: String, tokenName: String)
@@ -18,6 +22,8 @@ object AssetClass {
     x.tokenName == y.tokenName && x.currencySymbol == y.currencySymbol
 
   implicit val show: Show[AssetClass] = asset => s"${asset.currencySymbol}.${asset.tokenName}"
+
+  implicit val put: Put[AssetClass] = implicitly[Put[String]].contramap(_.show)
 
   def fromStringEff[F[_]: Throws: Applicative](in: String): F[AssetClass] =
     in.split(".").toList match {
