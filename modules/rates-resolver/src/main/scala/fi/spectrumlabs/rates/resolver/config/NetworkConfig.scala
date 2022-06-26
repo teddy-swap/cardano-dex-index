@@ -7,4 +7,4 @@ import tofu.logging.derivation.loggable
 import fi.spectrumlabs.core.network._
 
 @derive(pureconfigReader, loggable)
-final case class NetworkConfig(cmcUrl: Uri, cmcApiKey: String)
+final case class NetworkConfig(cmcUrl: Uri, cmcApiKey: String, metadataUrl: Uri)

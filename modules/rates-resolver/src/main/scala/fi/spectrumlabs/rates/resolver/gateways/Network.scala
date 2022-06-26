@@ -5,7 +5,7 @@ import fi.spectrumlabs.core.models.rates.ResolvedRate
 import fi.spectrumlabs.core.network.syntax._
 import fi.spectrumlabs.rates.resolver.config.NetworkConfig
 import fi.spectrumlabs.rates.resolver.models.NetworkResponse
-import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaCMCId, UsdCMCId}
+import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaCMCId, AdaDecimal, UsdCMCId}
 import sttp.client3.circe._
 import sttp.client3.{basicRequest, SttpBackend}
 import sttp.model.Uri.Segment
@@ -45,6 +45,6 @@ object Network {
         .send(backend)
         .absorbError
         .flatTap(price => info"Ada price from network is: $price")
-        .map(r => ResolvedRate(AdaAssetClass, r.price))
+        .map(r => ResolvedRate(AdaAssetClass, r.price, AdaDecimal))
   }
 }

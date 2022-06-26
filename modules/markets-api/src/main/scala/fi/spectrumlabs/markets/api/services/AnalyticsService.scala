@@ -3,7 +3,7 @@ package fi.spectrumlabs.markets.api.services
 import cats.data.OptionT
 import cats.{Functor, Monad}
 import derevo.derive
-import fi.spectrumlabs.core.models.domain.Pool
+import fi.spectrumlabs.core.models.domain.{Amount, Pool}
 import fi.spectrumlabs.markets.api.configs.MarketsApiConfig
 import fi.spectrumlabs.markets.api.models.PoolInfo
 import fi.spectrumlabs.markets.api.repositories.repos.{PoolsRepo, RatesRepo}
@@ -43,12 +43,16 @@ object AnalyticsService {
         pool   <- OptionT(Pool.fromDb(poolDb).pure)
         rateX  <- OptionT(ratesRepo.get(pool.x.asset))
         rateY  <- OptionT(ratesRepo.get(pool.y.asset))
-        xTvl     = pool.x.amount.value * rateX.rate
-        yTvl     = pool.y.amount.value * rateY.rate
+        xTvl     = pool.x.amount.dropPenny(rateX.decimals) * rateX.rate
+        yTvl     = pool.y.amount.dropPenny(rateY.decimals) * rateY.rate
         totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
         poolVolume <- OptionT(poolsRepo.getPoolVolume(pool, period))
-        xVolume     = poolVolume.xVolume.getOrElse(BigDecimal(0)) * rateX.rate
-        yVolume     = poolVolume.yVolume.getOrElse(BigDecimal(0)) * rateY.rate
+        xVolume = poolVolume.xVolume
+          .map(r => Amount(r.longValue).dropPenny(rateX.decimals))
+          .getOrElse(BigDecimal(0)) * rateX.rate
+        yVolume = poolVolume.yVolume
+          .map(r => Amount(r.longValue).dropPenny(rateY.decimals))
+          .getOrElse(BigDecimal(0)) * rateY.rate
         totalVolume = (xVolume + yVolume).setScale(0, RoundingMode.HALF_UP)
       } yield PoolInfo(totalTvl, totalVolume)).value
   }

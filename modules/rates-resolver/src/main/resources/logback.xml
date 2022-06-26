@@ -36,7 +36,7 @@
     <logger name="org.apache.kafka" level="OFF"/>
     <logger name="sttp.client3.asynchttpclient" level="OFF"/>
     <logger name="io.lettuce.core" level="OFF"/>
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

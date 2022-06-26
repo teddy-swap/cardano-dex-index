@@ -7,7 +7,7 @@ import derevo.derive
 import tofu.logging.derivation.loggable
 
 @derive(loggable, encoder, decoder)
-final case class ResolvedRate(asset: AssetClass, rate: BigDecimal) {
+final case class ResolvedRate(asset: AssetClass, rate: BigDecimal, decimals: Int) {
 
   def contains(x: AssetClass, y: AssetClass): Boolean =
     asset === x || asset == y
@@ -15,13 +15,28 @@ final case class ResolvedRate(asset: AssetClass, rate: BigDecimal) {
 
 object ResolvedRate {
 
-  def apply(pool: Pool, by: AssetClass): ResolvedRate =
+  def apply(pool: Pool, by: AssetClass, xDecimal: Int, yDecimal: Int): ResolvedRate = {
+    val xAppliedDecimals = pool.x.amount.dropPenny(xDecimal)
+    val yAppliedDecimals = pool.y.amount.dropPenny(yDecimal)
     if (pool.x.asset === by)
-      ResolvedRate(pool.y.asset, pool.priceByY)
-    else ResolvedRate(pool.x.asset, pool.priceByX)
+      ResolvedRate(
+        pool.y.asset,
+        xAppliedDecimals / yAppliedDecimals,
+        yDecimal
+      )
+    else
+      ResolvedRate(
+        pool.x.asset,
+        yAppliedDecimals / xAppliedDecimals,
+        xDecimal
+      )
+  }
 
-  def apply(pool: Pool, rate: ResolvedRate): ResolvedRate =
+  def apply(pool: Pool, rate: ResolvedRate, xDecimal: Int, yDecimal: Int): ResolvedRate = {
+    val xAppliedDecimals = pool.x.amount.dropPenny(xDecimal)
+    val yAppliedDecimals = pool.y.amount.dropPenny(yDecimal)
     if (pool.x.asset === rate.asset)
-      ResolvedRate(pool.y.asset, pool.priceByY * rate.rate)
-    else ResolvedRate(pool.x.asset, pool.priceByX * rate.rate)
+      ResolvedRate(pool.y.asset, (xAppliedDecimals * yAppliedDecimals) * rate.rate, yDecimal)
+    else ResolvedRate(pool.x.asset, (yAppliedDecimals * xAppliedDecimals) * rate.rate, xDecimal)
+  }
 }

@@ -15,7 +15,9 @@ package object domain {
     implicit val put: Put[PoolId]           = deriving
   }
 
-  @newtype final case class Amount(value: Long)
+  @newtype final case class Amount(value: Long) {
+    def dropPenny(decimal: Int): BigDecimal = BigDecimal(s"$value".take(decimal))
+  }
 
   object Amount {
     implicit val encoder: Encoder[Amount]   = deriving

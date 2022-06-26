@@ -8,10 +8,10 @@ import fi.spectrumlabs.core.network._
 import fi.spectrumlabs.core.redis._
 import fi.spectrumlabs.core.redis.codecs._
 import fi.spectrumlabs.rates.resolver.config.{AppContext, ConfigBundle}
-import fi.spectrumlabs.rates.resolver.gateways.Network
+import fi.spectrumlabs.rates.resolver.gateways.{Metadata, Network}
 import fi.spectrumlabs.rates.resolver.programs.Resolver
 import fi.spectrumlabs.rates.resolver.repositories.{PoolsRepo, RatesRepo}
-import fi.spectrumlabs.rates.resolver.services.PoolsService
+import fi.spectrumlabs.rates.resolver.services.{MetadataService, PoolsService}
 import sttp.client3.SttpBackend
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
@@ -47,11 +47,14 @@ object App extends EnvApp[AppContext] {
                                                                 configs.redis,
                                                                 stringCodec
                                                               )
-      implicit0(pRepo: PoolsRepo[RunF])       <- Resource.eval(PoolsRepo.create[InitF, xa.DB, RunF])
-      implicit0(pService: PoolsService[RunF]) <- Resource.eval(PoolsService.create[InitF, RunF])
-      implicit0(rates: RatesRepo[RunF])       <- Resource.eval(RatesRepo.create[InitF, RunF])
-      implicit0(network: Network[RunF])       <- Resource.eval(Network.create[InitF, RunF](configs.network))
-      resolver                                <- Resource.eval(Resolver.create[InitF, StreamF, RunF](configs.resolver))
-      _                                       <- Resource.eval(resolver.run.compile.drain).mapK(isoKRun.tof)
+      implicit0(pRepo: PoolsRepo[RunF])             <- Resource.eval(PoolsRepo.create[InitF, xa.DB, RunF])
+      implicit0(pService: PoolsService[RunF])       <- Resource.eval(PoolsService.create[InitF, RunF])
+      implicit0(rates: RatesRepo[RunF])             <- Resource.eval(RatesRepo.create[InitF, RunF])
+      implicit0(network: Network[RunF])             <- Resource.eval(Network.create[InitF, RunF](configs.network))
+      implicit0(meta: Metadata[RunF])               <- Resource.eval(Metadata.create[InitF, RunF](configs.network))
+      implicit0(metaService: MetadataService[RunF]) <- Resource.eval(MetadataService.create[InitF, RunF])
+
+      resolver <- Resource.eval(Resolver.create[InitF, StreamF, RunF](configs.resolver))
+      _        <- Resource.eval(resolver.run.compile.drain).mapK(isoKRun.tof)
     } yield ()
 }

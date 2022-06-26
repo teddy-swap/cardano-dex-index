@@ -36,4 +36,7 @@ object AssetClass {
         }
     }
 
+  def toMetadata(assetClass: AssetClass): String =
+    s"${assetClass.currencySymbol}${assetClass.tokenName}"
+
 }
