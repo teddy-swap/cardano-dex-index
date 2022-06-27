@@ -5,7 +5,8 @@ import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
 import fi.spectrumlabs.db.writer.models.streaming.{ExecutedOrderEvent => Executed}
 import cats.syntax.option._
-import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
+import fi.spectrumlabs.core.models.domain.{Amount, AssetClass, Coin}
+import fi.spectrumlabs.core.models.domain.AssetClass.syntax._
 
 final case class ExecutedSwap(
   base: Coin,

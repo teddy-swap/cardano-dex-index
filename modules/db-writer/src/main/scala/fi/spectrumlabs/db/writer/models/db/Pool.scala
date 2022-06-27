@@ -1,9 +1,10 @@
 package fi.spectrumlabs.db.writer.models.db
 
+import fi.spectrumlabs.core.models.domain.AssetClass.syntax._
+import fi.spectrumlabs.core.models.domain.{Amount, Coin}
 import fi.spectrumlabs.db.writer.classes.ToSchema
 import fi.spectrumlabs.db.writer.models.orders._
 import fi.spectrumlabs.db.writer.models.streaming
-import fi.spectrumlabs.db.writer.models.orders.AssetClass.syntax._
 
 final case class Pool(
   id: Coin,

@@ -20,7 +20,7 @@ trait Network[F[_]] {
 
 object Network {
 
-  final val CmcApiKey = "X-CMC_PRO_API_KEY"
+  val CmcApiKey = "X-CMC_PRO_API_KEY"
 
   def create[I[_]: Functor, F[_]: Monad: Throws](config: NetworkConfig)(
     implicit

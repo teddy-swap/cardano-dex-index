@@ -1,22 +1,23 @@
 package fi.spectrumlabs.core.models.domain
 
-import cats.{Applicative, Eq, Show}
-import derevo.circe.magnolia.{decoder, encoder}
-import derevo.derive
-import tofu.Throws
-import tofu.logging.derivation.loggable
-import tofu.syntax.raise._
-import tofu.syntax.monadic._
 import cats.syntax.option._
 import cats.syntax.show._
+import cats.{Eq, Show}
+import derevo.circe.magnolia.{decoder, encoder}
+import derevo.derive
 import doobie.util.Put
+import tofu.logging.derivation.loggable
 
-import java.sql.PreparedStatement
-
-@derive(loggable, encoder, decoder)
+@derive(decoder, encoder, loggable)
 final case class AssetClass(currencySymbol: String, tokenName: String)
 
 object AssetClass {
+
+  object syntax {
+    implicit class AssetClassOps(val in: AssetClass) extends AnyVal {
+      def toCoin: Coin = Coin(s"${in.currencySymbol}.${in.tokenName}")
+    }
+  }
 
   implicit val eq: Eq[AssetClass] = (x: AssetClass, y: AssetClass) =>
     x.tokenName == y.tokenName && x.currencySymbol == y.currencySymbol
@@ -24,12 +25,6 @@ object AssetClass {
   implicit val show: Show[AssetClass] = asset => s"${asset.currencySymbol}.${asset.tokenName}"
 
   implicit val put: Put[AssetClass] = implicitly[Put[String]].contramap(_.show)
-
-  def fromStringEff[F[_]: Throws: Applicative](in: String): F[AssetClass] =
-    in.split(".").toList match {
-      case cs :: tn :: Nil => AssetClass(cs, tn).pure[F]
-      case err             => new Throwable(s"Got incorrect asset id: $err").raise
-    }
 
   def fromString(in: String): Option[AssetClass] =
     in match {

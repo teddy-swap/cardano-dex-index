@@ -2,7 +2,8 @@ package fi.spectrumlabs.db.writer.models.streaming
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
-import fi.spectrumlabs.db.writer.models.orders.{Amount, AssetAmount, Deposit, Redeem, Swap}
+import fi.spectrumlabs.core.models.domain.{Amount, AssetAmount}
+import fi.spectrumlabs.db.writer.models.orders.{Deposit, Redeem, Swap}
 import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
