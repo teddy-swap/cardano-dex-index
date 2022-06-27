@@ -2,6 +2,7 @@ package fi.spectrumlabs.rates.resolver.gateways
 
 import cats.syntax.option._
 import cats.{Functor, Monad}
+import derevo.derive
 import fi.spectrumlabs.core.models.domain.AssetClass
 import fi.spectrumlabs.rates.resolver.config.NetworkConfig
 import fi.spectrumlabs.rates.resolver.models.MetadataResponse
@@ -9,14 +10,15 @@ import sttp.client3.circe.asJson
 import sttp.client3.{basicRequest, SttpBackend}
 import sttp.model.Uri.Segment
 import tofu.Throws
+import tofu.higherKind.Mid
+import tofu.higherKind.derived.representableK
 import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import tofu.syntax.monadic._
-import fi.spectrumlabs.rates.resolver.models.{Metadata => Meta}
 
+@derive(representableK)
 trait Metadata[F[_]] {
-
-  def getTokenInfo(token: AssetClass): F[Option[Meta]]
+  def getTokenMeta(token: AssetClass): F[Option[MetadataResponse]]
 }
 
 object Metadata {
@@ -26,13 +28,12 @@ object Metadata {
     backend: SttpBackend[F, _],
     logs: Logs[I, F]
   ): I[Metadata[F]] =
-    logs.forService[Network[F]].map(implicit __ => new Impl[F](config))
+    logs.forService[Network[F]].map(implicit __ => new Tracing[F] attach new Impl[F](config))
 
-  final private class Impl[F[_]: Monad: Throws: Logging](config: NetworkConfig)(implicit backend: SttpBackend[F, _])
+  final private class Impl[F[_]: Monad: Throws](config: NetworkConfig)(implicit backend: SttpBackend[F, _])
     extends Metadata[F] {
 
-    def getTokenInfo(token: AssetClass): F[Option[Meta]] =
-      info"Going to get info for token $token from metadata service" >>
+    def getTokenMeta(token: AssetClass): F[Option[MetadataResponse]] =
       basicRequest
         .get(
           config.metadataUrl.withPathSegment(Segment(s"metadata/${AssetClass.toMetadata(token)}", identity))
@@ -45,9 +46,15 @@ object Metadata {
             case Right(value) => value.some
           }
         }
-        .flatTap(info => info"Token info for $token is $info")
-        .map(_.map { r =>
-          Meta(r.decimals, token)
-        })
+  }
+
+  final private class Tracing[F[_]: Monad: Logging] extends Metadata[Mid[F, *]] {
+
+    def getTokenMeta(token: AssetClass): Mid[F, Option[MetadataResponse]] =
+      for {
+        _ <- trace"Going to get meta for token $token from metadata service"
+        r <- _
+        _ <- trace"Token meta for $token is $r"
+      } yield r
   }
 }

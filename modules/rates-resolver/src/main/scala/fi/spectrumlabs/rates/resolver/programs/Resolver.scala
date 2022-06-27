@@ -58,7 +58,7 @@ object Resolver {
         .flatMap { adaPrice =>
           (for {
             pools <- pools.getAllLatest(config.minLiquidityValue).flatTap(pools => trace"Pools from DB are: $pools.")
-            info  <- metadataService.getTokensInfo(pools.flatMap(p => p.x.asset :: p.y.asset :: Nil))
+            info  <- metadataService.getTokensMeta(pools.flatMap(p => p.x.asset :: p.y.asset :: Nil))
           } yield (pools, info)).map {
             case (pools, info) =>
               val resolvedByAda =

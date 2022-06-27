@@ -4,14 +4,14 @@ import cats.syntax.eq._
 import cats.syntax.parallel._
 import cats.{Functor, Monad, Parallel}
 import fi.spectrumlabs.core.models.domain.AssetClass
-import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaDecimal, AdaMetadata}
 import fi.spectrumlabs.rates.resolver.gateways.Metadata
 import fi.spectrumlabs.rates.resolver.models.{Metadata => Meta}
+import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaMetadata}
 import tofu.logging.Logs
 import tofu.syntax.monadic._
 
 trait MetadataService[F[_]] {
-  def getTokensInfo(tokens: List[AssetClass]): F[List[Meta]]
+  def getTokensMeta(tokens: List[AssetClass]): F[List[Meta]]
 }
 
 object MetadataService {
@@ -25,10 +25,10 @@ object MetadataService {
 
   final private class Impl[F[_]: Monad: Parallel](implicit meta: Metadata[F]) extends MetadataService[F] {
 
-    def getTokensInfo(tokens: List[AssetClass]): F[List[Meta]] =
+    def getTokensMeta(tokens: List[AssetClass]): F[List[Meta]] =
       tokens.distinct
         .filterNot(_ =!= AdaAssetClass)
-        .parTraverse(meta.getTokenInfo)
+        .parTraverse(asset => meta.getTokenMeta(asset).map(_.map(r => Meta(r.decimals, asset))))
         .map(_.flatten)
         .map(AdaMetadata :: _)
   }
