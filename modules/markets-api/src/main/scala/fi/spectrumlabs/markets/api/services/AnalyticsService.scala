@@ -41,8 +41,8 @@ object AnalyticsService {
       (for {
         poolDb <- OptionT(poolsRepo.getPoolById(poolId, config.minLiquidityValue))
         pool   <- OptionT(Pool.fromDb(poolDb).pure)
-        rateX  <- OptionT(ratesRepo.get(pool.x.asset))
-        rateY  <- OptionT(ratesRepo.get(pool.y.asset))
+        rateX  <- OptionT(ratesRepo.get(pool.x.asset, pool.id))
+        rateY  <- OptionT(ratesRepo.get(pool.y.asset, pool.id))
         xTvl     = pool.x.amount.dropPenny(rateX.decimals) * rateX.rate
         yTvl     = pool.y.amount.dropPenny(rateY.decimals) * rateY.rate
         totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
@@ -55,6 +55,7 @@ object AnalyticsService {
           .getOrElse(BigDecimal(0)) * rateY.rate
         totalVolume = (xVolume + yVolume).setScale(0, RoundingMode.HALF_UP)
       } yield PoolInfo(totalTvl, totalVolume)).value
+
   }
 
   final private class Tracing[F[_]: Monad: Logging] extends AnalyticsService[Mid[F, *]] {

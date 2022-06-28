@@ -3,10 +3,11 @@ package fi.spectrumlabs.rates.resolver.services
 import cats.syntax.eq._
 import cats.syntax.parallel._
 import cats.{Functor, Monad, Parallel}
+import fi.spectrumlabs.core.AdaAssetClass
 import fi.spectrumlabs.core.models.domain.AssetClass
 import fi.spectrumlabs.rates.resolver.gateways.Metadata
 import fi.spectrumlabs.rates.resolver.models.{Metadata => Meta}
-import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaMetadata}
+import fi.spectrumlabs.rates.resolver.AdaMetadata
 import tofu.logging.Logs
 import tofu.syntax.monadic._
 import tofu.syntax.foption._

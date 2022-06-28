@@ -1,7 +1,8 @@
 package fi.spectrumlabs.core.models
 
-import cats.Show
+import cats.{Eq, Show}
 import doobie.util.{Get, Put}
+import fi.spectrumlabs.core.models.domain.Amount
 import io.circe.{Decoder, Encoder}
 import io.estatico.newtype.macros.newtype
 import tofu.logging.Loggable
@@ -13,6 +14,9 @@ package object domain {
     implicit val loggable: Loggable[PoolId] = deriving
     implicit val get: Get[PoolId]           = deriving
     implicit val put: Put[PoolId]           = deriving
+    implicit val eq: Eq[PoolId]             = deriving
+    implicit val encoder: Encoder[PoolId]   = deriving
+    implicit val decoder: Decoder[PoolId]   = deriving
   }
 
   @newtype final case class Amount(value: Long) {

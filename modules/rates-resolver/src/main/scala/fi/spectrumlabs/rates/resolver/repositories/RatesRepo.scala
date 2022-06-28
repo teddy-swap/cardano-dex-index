@@ -29,7 +29,7 @@ object RatesRepo {
   final private class Impl[F[_]](implicit cmd: RedisCommands[F, String, String]) extends RatesRepo[F] {
 
     def put(rate: ResolvedRate): F[Unit] =
-      cmd.set(rate.asset.show, rate.asJson.noSpaces)
+      cmd.set(rate.cacheKey, rate.asJson.noSpaces)
   }
 
   final class Tracing[F[_]: Monad: Logging] extends RatesRepo[Mid[F, *]] {

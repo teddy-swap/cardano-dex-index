@@ -12,6 +12,9 @@ final case class Pool(id: PoolId, x: AssetAmount, y: AssetAmount) {
 
   def contains(elem: AssetClass): Boolean =
     elem === x.asset || elem === y.asset
+
+  def contains(e1: AssetClass, e2: AssetClass): Boolean =
+    contains(e1) || contains(e2)
 }
 
 object Pool {
