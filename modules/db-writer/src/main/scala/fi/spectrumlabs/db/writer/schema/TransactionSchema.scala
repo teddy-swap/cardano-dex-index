@@ -12,6 +12,7 @@ class TransactionSchema extends Schema[Transaction] {
     "invalid_before",
     "invalid_hereafter",
     "metadata",
-    "size"
+    "size",
+    "timestamp"
   )
 }

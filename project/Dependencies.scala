@@ -19,6 +19,8 @@ object Dependencies {
     val fs2KafkaVersion = "1.4.1"
     val circeVersion    = "0.14.1"
     val scalaland       = "0.6.1"
+    val http4s          = "0.22.11"
+    val catsRetry       = "2.1.1"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -28,6 +30,7 @@ object Dependencies {
     val tofuCore       = "tf.tofu" %% "tofu-core"         % V.tofu
     val tofuConcurrent = "tf.tofu" %% "tofu-concurrent"   % V.tofu
     val tofuOptics     = "tf.tofu" %% "tofu-optics-macro" % V.tofu
+    val tofuOpticsInterop = "tf.tofu" %% "tofu-optics-interop" % V.tofu
     val tofuDerivation = "tf.tofu" %% "tofu-derivation"   % V.tofu
     val tofuLogging    = "tf.tofu" %% "tofu-logging"      % V.tofu
     val tofuDoobie     = "tf.tofu" %% "tofu-doobie"       % V.tofu
@@ -43,6 +46,8 @@ object Dependencies {
     val derevoPureconfig  = "tf.tofu" %% "derevo-pureconfig-legacy" % V.derevo
 
     val catsEffect = "org.typelevel" %% "cats-effect" % V.catsEffect
+
+    val catsRetry = "com.github.cb372" %% "cats-retry" % V.catsRetry
 
     val doobieCore   = "org.tpolecat" %% "doobie-core"     % V.doobie
     val doobiePg     = "org.tpolecat" %% "doobie-postgres" % V.doobie
@@ -63,6 +68,8 @@ object Dependencies {
     val tapirDocs    = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs"       % V.tapir
     val tapirOpenApi = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % V.tapir
     val tapirRedoc   = "com.softwaremill.sttp.tapir" %% "tapir-redoc-http4s"       % V.tapir
+
+    val http4sServer = "org.http4s" %% "http4s-blaze-server" % V.http4s
 
     val newtype = "io.estatico" %% "newtype" % V.newtype
 

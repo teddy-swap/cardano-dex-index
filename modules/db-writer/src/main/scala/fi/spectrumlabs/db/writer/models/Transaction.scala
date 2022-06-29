@@ -1,7 +1,7 @@
 package fi.spectrumlabs.db.writer.models
 
 import fi.spectrumlabs.explorer.models.{BlockHash, TxHash}
-import fi.spectrumlabs.db.writer.classes.FromLedger
+import fi.spectrumlabs.db.writer.classes.ToSchema
 import io.circe.Json
 import fi.spectrumlabs.core.models.Tx
 import io.circe.syntax._
@@ -13,12 +13,13 @@ final case class Transaction(
   invalidBefore: Option[BigInt],
   invalidHereafter: Option[BigInt],
   metadata: Option[Json],
-  size: Int
+  size: Int,
+  timestamp: Long
 )
 
 object Transaction {
 
-  implicit val fromLedger: FromLedger[Tx, Transaction] = (in: Tx) =>
+  implicit val toSchema: ToSchema[Tx, Transaction] = (in: Tx) =>
     Transaction(
       in.blockHash,
       in.blockIndex,
@@ -26,6 +27,7 @@ object Transaction {
       in.invalidBefore,
       in.invalidHereafter,
       in.metadata.map(_.asJson),
-      in.size
+      in.size,
+      in.timestamp
   )
 }
