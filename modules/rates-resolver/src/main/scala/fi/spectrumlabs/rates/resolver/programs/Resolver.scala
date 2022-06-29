@@ -66,7 +66,7 @@ object Resolver {
             info  <- metadataService.getTokensMeta(pools.flatMap(p => p.x.asset :: p.y.asset :: Nil))
           } yield (pools, info)).map {
             case (pools, info) =>
-              val poolsWithAda = pools.filter(_.contains(AdaAssetClass))
+              val (poolsWithAda, poolsWithoutAda) = pools.partition(_.contains(AdaAssetClass))
 
               val resolvedByAda =
                 poolsWithAda
@@ -77,8 +77,7 @@ object Resolver {
                   }
 
               val resolvedViaAda =
-                pools
-                  .filterNot(_.contains(AdaAssetClass))
+                poolsWithoutAda
                   .flatMap { pool =>
                     Either
                       .catchNonFatal {
@@ -109,8 +108,7 @@ object Resolver {
     private def tvl(pool: Pool, rateX: ResolvedRate, rateY: ResolvedRate): BigDecimal = {
       val xTvl     = pool.x.amount.dropPenny(rateX.decimals) * rateX.rate
       val yTvl     = pool.y.amount.dropPenny(rateY.decimals) * rateY.rate
-      val totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
-      totalTvl
+      (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
     }
   }
 }
