@@ -1,4 +1,4 @@
-package fi.spectrumlabs.db.writer.models.orders
+package fi.spectrumlabs.core.models.domain
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive

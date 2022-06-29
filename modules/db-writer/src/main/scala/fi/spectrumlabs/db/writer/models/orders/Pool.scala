@@ -2,6 +2,7 @@ package fi.spectrumlabs.db.writer.models.orders
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
+import fi.spectrumlabs.core.models.domain.{Amount, AssetClass}
 import tofu.logging.derivation.{loggable, show}
 
 @derive(decoder, encoder, show, loggable)

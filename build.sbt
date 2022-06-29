@@ -37,7 +37,7 @@ lazy val dexIndex = project
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
   .settings(commonSettings)
   .settings(name := "cardano-dex-index")
-  .aggregate(core, tracker, dexAggregator, dbWriter, api, explorer)
+  .aggregate(core, tracker, dexAggregator, dbWriter, api, explorer, ratesResolver)
 
 lazy val explorer = project
   .in(file("modules/explorer"))
@@ -58,19 +58,24 @@ lazy val core = project
   .withId("cardano-markets-core")
   .settings(name := "cardano-markets-core")
   .settings(libraryDependencies ++= List(
-    Libraries.derevoCirce,
     Libraries.derevoPureconfig,
-    Libraries.tofuDerivation,
     Libraries.tofuDoobie,
-    Libraries.tofuLogging,
     Libraries.tofuZio,
     Libraries.tofuStreams,
     Libraries.tofuFs2,
-    Libraries.newtype,
-    Libraries.enumeratum,
+    Libraries.tofuOpticsInterop,
     Libraries.kafka,
     Libraries.circeParse,
-    Libraries.scalaland
+    Libraries.scalaland,
+    Libraries.sttpCore,
+    Libraries.sttpCirce,
+    Libraries.sttpClientFs2,
+    Libraries.sttpClientCE2,
+    Libraries.redis4catsEffects,
+    Libraries.doobiePg,
+    Libraries.doobieHikari,
+    Libraries.doobieCore,
+    Libraries.pureconfig
   ))
   .dependsOn(explorer)
   .settings(commonSettings)
@@ -81,11 +86,6 @@ lazy val tracker = project
   .settings(name := "cardano-markets-tracker")
   .settings(commonSettings)
   .settings(libraryDependencies ++=  List(
-    Libraries.sttpCore,
-    Libraries.sttpCirce,
-    Libraries.sttpClientFs2,
-    Libraries.sttpClientCE2,
-    Libraries.redis4catsEffects,
     Libraries.derevoCats,
     Libraries.derevoCatsTagless,
     Libraries.jawnFs2,
@@ -112,12 +112,7 @@ lazy val dbWriter = project
   .settings(name := "cardano-db-writer")
   .settings(commonSettings)
   .settings(libraryDependencies ++= List(
-    Libraries.doobiePg,
-    Libraries.doobieHikari,
-    Libraries.doobieCore,
-    Libraries.derevoPureconfig,
     Libraries.tofuZio,
-    Libraries.pureconfig,
     Libraries.kafka,
     Libraries.tofuFs2,
     Libraries.mouse
@@ -131,5 +126,36 @@ lazy val api = project
   .withId("cardano-markets-api")
   .settings(name := "cardano-markets-api")
   .settings(commonSettings)
+  .settings(libraryDependencies ++= List(
+    Libraries.doobiePg,
+    Libraries.doobieHikari,
+    Libraries.doobieCore,
+    Libraries.tofuZio,
+    Libraries.pureconfig,
+    Libraries.tofuFs2,
+    Libraries.mouse,
+    Libraries.tapirCirce,
+    Libraries.tapirHttp4s,
+    Libraries.tapirRedoc,
+    Libraries.tapirDocs,
+    Libraries.tapirOpenApi,
+    Libraries.http4sServer
+  ))
+  .dependsOn(core)
+  .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
+
+lazy val ratesResolver = project
+  .in(file("modules/rates-resolver"))
+  .withId("cardano-rates-resolver")
+  .settings(name := "cardano-rates-resolver")
+  .settings(commonSettings)
+  .settings(libraryDependencies ++= List(
+    Libraries.doobiePg,
+    Libraries.doobieHikari,
+    Libraries.doobieCore,
+    Libraries.tofuZio,
+    Libraries.tofuFs2,
+    Libraries.mouse
+  ))
   .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)

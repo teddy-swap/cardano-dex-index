@@ -1,4 +1,4 @@
-package fi.spectrumlabs.db.writer
+package fi.spectrumlabs.core.pg
 
 import cats.Functor
 import cats.syntax.functor._

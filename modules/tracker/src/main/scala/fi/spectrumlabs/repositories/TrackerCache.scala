@@ -4,7 +4,7 @@ import cats.Functor
 import cats.syntax.functor._
 import derevo.derive
 import dev.profunktor.redis4cats.RedisCommands
-import fi.spectrumlabs.config.RedisConfig
+import fi.spectrumlabs.core.redis.RedisConfig
 import retry.RetryPolicies.constantDelay
 import retry.implicits.retrySyntaxError
 import retry.{RetryDetails, RetryPolicy, Sleep}
