@@ -9,6 +9,7 @@ import fi.spectrumlabs.rates.resolver.models.{Metadata => Meta}
 import fi.spectrumlabs.rates.resolver.{AdaAssetClass, AdaMetadata}
 import tofu.logging.Logs
 import tofu.syntax.monadic._
+import tofu.syntax.foption._
 
 trait MetadataService[F[_]] {
   def getTokensMeta(tokens: List[AssetClass]): F[List[Meta]]
@@ -28,7 +29,7 @@ object MetadataService {
     def getTokensMeta(tokens: List[AssetClass]): F[List[Meta]] =
       tokens.distinct
         .filterNot(_ =!= AdaAssetClass)
-        .parTraverse(asset => meta.getTokenMeta(asset).map(_.map(r => Meta(r.decimals, asset))))
+        .parTraverse(asset => meta.getTokenMeta(asset).mapIn(r => Meta(r.decimals, asset)))
         .map(_.flatten)
         .map(AdaMetadata :: _)
   }
