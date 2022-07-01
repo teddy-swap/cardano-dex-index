@@ -142,6 +142,7 @@ lazy val api = project
     Libraries.http4sServer
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "markets-api.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val ratesResolver = project
@@ -158,4 +159,5 @@ lazy val ratesResolver = project
     Libraries.mouse
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "rates-resolver.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
