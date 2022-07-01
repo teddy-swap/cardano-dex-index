@@ -75,8 +75,7 @@ lazy val core = project
     Libraries.doobiePg,
     Libraries.doobieHikari,
     Libraries.doobieCore,
-    Libraries.pureconfig,
-    Libraries.specs2Core
+    Libraries.pureconfig
   ))
   .dependsOn(explorer)
   .settings(commonSettings)

@@ -46,7 +46,7 @@ class ResolverServiceTests extends Specification {
 
       toCheck must beNone
     }
-    "resolve tokens pairs with common tokens via max tvl pool" in {
+    "preserves different(not necessary) rates for same tokens in different pools" in {
       val adaRate: BigDecimal = BigDecimal(0.5)
       val constantPool        = genAdaPool.sample.get
       val pools: List[Pool] = List(
@@ -70,7 +70,7 @@ class ResolverServiceTests extends Specification {
       res.length mustEqual 4
       toCheck must beNone
     }
-    "resolve rates via ada to token pairs" in {
+    "resolve rates for tokens without ada pair via ada to token pairs" in {
       val adaRate: BigDecimal = BigDecimal(0.5)
       val adaPool             = genAdaPool.sample.get
       val nonAdaPool          = genPool.sample.get.copy(x = adaPool.x)
