@@ -21,22 +21,24 @@ object Dependencies {
     val scalaland       = "0.6.1"
     val http4s          = "0.22.11"
     val catsRetry       = "2.1.1"
+    val specs2          = "4.16.0"
+    val scalaCheck      = "1.16.0"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
   }
 
   object Libraries {
-    val tofuCore       = "tf.tofu" %% "tofu-core"         % V.tofu
-    val tofuConcurrent = "tf.tofu" %% "tofu-concurrent"   % V.tofu
-    val tofuOptics     = "tf.tofu" %% "tofu-optics-macro" % V.tofu
+    val tofuCore          = "tf.tofu" %% "tofu-core"           % V.tofu
+    val tofuConcurrent    = "tf.tofu" %% "tofu-concurrent"     % V.tofu
+    val tofuOptics        = "tf.tofu" %% "tofu-optics-macro"   % V.tofu
     val tofuOpticsInterop = "tf.tofu" %% "tofu-optics-interop" % V.tofu
-    val tofuDerivation = "tf.tofu" %% "tofu-derivation"   % V.tofu
-    val tofuLogging    = "tf.tofu" %% "tofu-logging"      % V.tofu
-    val tofuDoobie     = "tf.tofu" %% "tofu-doobie"       % V.tofu
-    val tofuStreams    = "tf.tofu" %% "tofu-streams"      % V.tofu
-    val tofuFs2        = "tf.tofu" %% "tofu-fs2-interop"  % V.tofu
-    val tofuZio        = "tf.tofu" %% "tofu-zio-interop"  % V.tofu
+    val tofuDerivation    = "tf.tofu" %% "tofu-derivation"     % V.tofu
+    val tofuLogging       = "tf.tofu" %% "tofu-logging"        % V.tofu
+    val tofuDoobie        = "tf.tofu" %% "tofu-doobie"         % V.tofu
+    val tofuStreams       = "tf.tofu" %% "tofu-streams"        % V.tofu
+    val tofuFs2           = "tf.tofu" %% "tofu-fs2-interop"    % V.tofu
+    val tofuZio           = "tf.tofu" %% "tofu-zio-interop"    % V.tofu
 
     val circeParse = "io.circe" %% "circe-parser" % V.circeVersion
 
@@ -79,6 +81,9 @@ object Dependencies {
     val redis4catsEffects = "dev.profunktor"  %% "redis4cats-effects" % V.redis
     val jawnFs2           = "org.http4s"      %% "jawn-fs2"           % V.jawnFs2Version
     val kafka             = "com.github.fd4s" %% "fs2-kafka"          % V.fs2KafkaVersion
+
+    val specs2Core = "org.specs2"     %% "specs2-core" % V.specs2     % Test
+    val scalaCheck = "org.scalacheck" %% "scalacheck"  % V.scalaCheck % Test
   }
 
   object CompilerPlugins {

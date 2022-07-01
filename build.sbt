@@ -75,7 +75,8 @@ lazy val core = project
     Libraries.doobiePg,
     Libraries.doobieHikari,
     Libraries.doobieCore,
-    Libraries.pureconfig
+    Libraries.pureconfig,
+    Libraries.specs2Core
   ))
   .dependsOn(explorer)
   .settings(commonSettings)
@@ -148,7 +149,9 @@ lazy val ratesResolver = project
     Libraries.doobieCore,
     Libraries.tofuZio,
     Libraries.tofuFs2,
-    Libraries.mouse
+    Libraries.mouse,
+    Libraries.specs2Core,
+    Libraries.scalaCheck
   ))
   .dependsOn(core)
   .settings(assembly / assemblyJarName := "rates-resolver.jar")
