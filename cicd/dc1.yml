@@ -1,0 +1,21 @@
+version: '3.4'
+
+networks:
+  dev:
+    name: dev
+    driver: bridge
+
+services:
+  api:
+    build:
+      context: ${SOURCES_PATH}
+      dockerfile: modules/api/Dockerfile
+    volumes:
+      - "${PWD}/config/explorer-api.conf:/etc/explorer-api.conf"
+    command: /etc/explorer-api.conf
+    networks:
+      - default
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "10"

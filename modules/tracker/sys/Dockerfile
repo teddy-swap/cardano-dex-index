@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-slim as builder
+FROM --platform=linux/amd64 openjdk:8-jre-slim as builder
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-transport-https apt-utils bc dirmngr gnupg && \
     echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list && \
@@ -6,12 +6,15 @@ RUN apt-get update && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends sbt
-COPY . /tracker-scala
-WORKDIR /tracker-scala
-RUN sbt assembly
+COPY . /cardano-analytics-scala
+WORKDIR /cardano-analytics-scala
+RUN sbt cardano-markets-tracker/assembly
 RUN mv `find . -name tracker.jar` /tracker.jar
 CMD ["/usr/bin/java", "-jar", "/tracker.jar"]
 
+ENV LOG_CONFIG "/cardano-analytics-scala/conf/logback.xml"
+ENV ENV_CONFIG "/cardano-analytics-scala/conf/conf.env"
+
 FROM openjdk:8-jre-slim
 COPY --from=builder /tracker.jar /tracker.jar
-ENTRYPOINT java -jar /tracker.jar $0
+ENTRYPOINT java -Xms1G -Xmx2G -Dlogback.configurationFile=${LOG_CONFIG} -Duser.timezone=Europe/Moscow -jar /tracker.jar ${ENV_CONFIG}
