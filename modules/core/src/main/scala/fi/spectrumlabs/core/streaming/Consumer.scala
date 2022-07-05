@@ -90,8 +90,7 @@ object Consumer {
     G[_]: Functor,
     K,
     V
-  ](conf: ConsumerConfig)(
-    implicit
+  ](conf: ConsumerConfig)(implicit
     makeConsumer: MakeKafkaConsumer[G, K, V]
   ): Consumer.Aux[K, V, KafkaOffset, F, G] =
     functorK
@@ -109,8 +108,7 @@ object Consumer {
       def stream: F[Committable[K, V, Offset, G]] = F.empty
     }
 
-  final class Live[K, V, F[_]: Functor](config: ConsumerConfig)(
-    implicit
+  final class Live[K, V, F[_]: Functor](config: ConsumerConfig)(implicit
     makeConsumer: MakeKafkaConsumer[F, K, V]
   ) extends Consumer[K, V, Stream[F, *], F] {
 

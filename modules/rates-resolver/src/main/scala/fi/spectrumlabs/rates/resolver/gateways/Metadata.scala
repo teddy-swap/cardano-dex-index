@@ -23,8 +23,7 @@ trait Metadata[F[_]] {
 
 object Metadata {
 
-  def create[I[_]: Functor, F[_]: Monad: Throws](config: NetworkConfig)(
-    implicit
+  def create[I[_]: Functor, F[_]: Monad: Throws](config: NetworkConfig)(implicit
     backend: SttpBackend[F, _],
     logs: Logs[I, F]
   ): I[Metadata[F]] =

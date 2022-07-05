@@ -18,8 +18,7 @@ trait MetadataService[F[_]] {
 
 object MetadataService {
 
-  def create[I[_]: Functor, F[_]: Monad: Parallel](
-    implicit
+  def create[I[_]: Functor, F[_]: Monad: Parallel](implicit
     meta: Metadata[F],
     logs: Logs[I, F]
   ): I[MetadataService[F]] =

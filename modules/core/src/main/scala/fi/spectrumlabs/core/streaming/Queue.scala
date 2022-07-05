@@ -43,23 +43,21 @@ object Queue {
         }
     }
 
-  def create[I[_]: Sync, F[_], G[_]: Concurrent, A](boundSize: Int)(
-    implicit
+  def create[I[_]: Sync, F[_], G[_]: Concurrent, A](boundSize: Int)(implicit
     logs: Logs[I, G],
     isoKFG: IsoK[F, Stream[G, *]]
   ): I[QueueStreaming[F, G, A]] =
     logs
       .forService[QueueStreaming[F, G, A]]
-      .flatMap(
-        implicit __ =>
-          concurrent.Queue
-            .in[I]
-            .bounded[G, A](boundSize)
-            .map { queue: concurrent.Queue[G, A] =>
-              new ImplStreaming[G, A](queue)
-            }
-            .map { queue: QueueStreaming[Stream[G, *], G, A] =>
-              implicitly[InvariantK[QueueStreaming[*[_], G, A]]].imapK(queue)(isoKFG.fromF)(isoKFG.tof)
+      .flatMap(implicit __ =>
+        concurrent.Queue
+          .in[I]
+          .bounded[G, A](boundSize)
+          .map { queue: concurrent.Queue[G, A] =>
+            new ImplStreaming[G, A](queue)
+          }
+          .map { queue: QueueStreaming[Stream[G, *], G, A] =>
+            implicitly[InvariantK[QueueStreaming[*[_], G, A]]].imapK(queue)(isoKFG.fromF)(isoKFG.tof)
           }
       )
 

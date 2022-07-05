@@ -12,8 +12,7 @@ import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
 import tofu.higherKind.RepresentableK
 
-/**
-  * Takes batch of T elements and persists them into indexes storage.
+/** Takes batch of T elements and persists them into indexes storage.
   */
 trait Persist[T, F[_]] {
   def persist(inputs: NonEmptyList[T]): F[Int]
@@ -26,15 +25,13 @@ object Persist {
     tofu.higherKind.derived.genRepresentableK[Repr]
   }
 
-  def create[T: Write, D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](schema: Schema[T])(
-    implicit
+  def create[T: Write, D[_]: FlatMap: LiftConnectionIO, F[_]: Applicative](schema: Schema[T])(implicit
     elh: EmbeddableLogHandler[D],
     txr: Txr[F, D]
   ): Persist[T, F] =
     elh.embed(implicit __ => new Impl[T](schema).mapK(LiftConnectionIO[D].liftF)).mapK(txr.trans)
 
-  private final class Impl[T: Write](schema: Schema[T])(
-    implicit
+  private final class Impl[T: Write](schema: Schema[T])(implicit
     lh: LogHandler
   ) extends Persist[T, ConnectionIO] {
 

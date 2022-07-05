@@ -38,6 +38,6 @@ object Pool {
         in.pool.outCollateral,
         in.outputId,
         in.timestamp
-    )
+      )
 
 }
