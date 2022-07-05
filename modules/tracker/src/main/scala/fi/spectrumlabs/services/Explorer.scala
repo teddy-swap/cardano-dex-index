@@ -72,7 +72,7 @@ object Explorer {
         .parseJsonStream
         .map(_.as[Transaction].toOption)
         .unNone
-        .handleErrorWith { err => Stream.eval(info"The error ${err.getMessage} occurred.") >> Stream.empty }
+        .handleErrorWith { err => Stream.eval(info"The error: ${err.getMessage} occurred.") >> Stream.empty }
     }
   }
 
