@@ -7,3 +7,5 @@ docker run \
     --network="dev" \
     --name=tracker-scala \
     -d timooxaaa/tracker-spectrum:0.0.1
+
+sudo docker build -t timooxaaa/tracker-spectrum:0.0.1 -f modules/tracker/sys/Dockerfile .

@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 openjdk:8-jre-slim as builder
+FROM openjdk:8-jre-slim as builder
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-transport-https apt-utils bc dirmngr gnupg && \
     echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list && \
