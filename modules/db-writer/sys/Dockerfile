@@ -6,12 +6,16 @@ RUN apt-get update && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends sbt
-COPY . /indexes-writer-scala
-WORKDIR /indexes-writer-scala
-RUN sbt assembly
+COPY . /cardano-analytics-scala
+WORKDIR /cardano-analytics-scala
+RUN sbt cardano-db-writer/assembly
 RUN mv `find . -name indexes-writer.jar` /indexes-writer.jar
 CMD ["/usr/bin/java", "-jar", "/indexes-writer.jar"]
 
 FROM openjdk:8-jre-slim
+
+ENV LOG_CONFIG "/cardano-analytics-scala/conf/logback.xml"
+ENV ENV_CONFIG "/cardano-analytics-scala/conf/conf.env"
+
 COPY --from=builder /indexes-writer.jar /indexes-writer.jar
-ENTRYPOINT java -jar /indexes-writer.jar $0
+ENTRYPOINT java -Xms1G -Xmx2G -Dlogback.configurationFile=${LOG_CONFIG} -Duser.timezone=Europe/Moscow -jar /indexes-writer.jar ${ENV_CONFIG}
