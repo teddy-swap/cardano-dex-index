@@ -12,9 +12,10 @@ RUN sbt cardano-markets-tracker/assembly
 RUN mv `find . -name tracker.jar` /tracker.jar
 CMD ["/usr/bin/java", "-jar", "/tracker.jar"]
 
+FROM openjdk:8-jre-slim
+
 ENV LOG_CONFIG "/cardano-analytics-scala/conf/logback.xml"
 ENV ENV_CONFIG "/cardano-analytics-scala/conf/conf.env"
 
-FROM openjdk:8-jre-slim
 COPY --from=builder /tracker.jar /tracker.jar
 ENTRYPOINT java -Xms1G -Xmx2G -Dlogback.configurationFile=${LOG_CONFIG} -Duser.timezone=Europe/Moscow -jar /tracker.jar ${ENV_CONFIG}
