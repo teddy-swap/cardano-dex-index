@@ -6,12 +6,16 @@ RUN apt-get update && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends sbt
-COPY . /markets-api-scala
-WORKDIR /markets-api-scala
-RUN sbt assembly
+COPY . /cardano-analytics-scala
+WORKDIR /cardano-analytics-scala
+RUN sbt cardano-markets-api/assembly
 RUN mv `find . -name markets-api.jar` /markets-api.jar
 CMD ["/usr/bin/java", "-jar", "/markets-api.jar"]
 
 FROM openjdk:8-jre-slim
+
+ENV LOG_CONFIG "/cardano-analytics-scala/conf/logback.xml"
+ENV ENV_CONFIG "/cardano-analytics-scala/conf/conf.env"
+
 COPY --from=builder /markets-api.jar /markets-api.jar
-ENTRYPOINT java -jar /markets-api.jar $0
+ENTRYPOINT java -Xms1G -Xmx2G -Dlogback.configurationFile=${LOG_CONFIG} -Duser.timezone=Europe/Moscow -jar /markets-api.jar ${ENV_CONFIG}
