@@ -32,15 +32,13 @@ object Explorer {
     cats.tagless.Derive.functorK[Mod]
   }
 
-  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow: Sleep, I[_]: Functor](config: ExplorerConfig)(
-    implicit
+  def create[S[_]: LiftStream[*[_], F], F[_]: MonadThrow: Sleep, I[_]: Functor](config: ExplorerConfig)(implicit
     backend: SttpBackend[F, Fs2Streams[F]],
     logs: Logs[I, F]
   ): I[Explorer[S, F]] =
     logs.forService[Explorer[S, F]].map(implicit __ => functorK.mapK(new Impl(config))(LiftStream[S, F].liftF))
 
-  private final class Impl[F[_]: MonadThrow: Logging: Sleep](config: ExplorerConfig)(
-    implicit
+  private final class Impl[F[_]: MonadThrow: Logging: Sleep](config: ExplorerConfig)(implicit
     backend: SttpBackend[F, Fs2Streams[F]]
   ) extends Explorer[Stream[F, *], F] {
 
@@ -72,7 +70,7 @@ object Explorer {
         .parseJsonStream
         .map(_.as[Transaction].toOption)
         .unNone
-        .handleErrorWith { err => Stream.eval(info"The error: ${err.getMessage} occurred.") >> Stream.empty }
+        .handleErrorWith(err => Stream.eval(info"The error: ${err.getMessage} occurred.") >> Stream.empty)
     }
   }
 
