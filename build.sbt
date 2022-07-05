@@ -37,7 +37,7 @@ lazy val dexIndex = project
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
   .settings(commonSettings)
   .settings(name := "cardano-dex-index")
-  .aggregate(core, tracker, dexAggregator, dbWriter, api, explorer, ratesResolver)
+  .aggregate(core, tracker, dbWriter, api, explorer, ratesResolver)
 
 lazy val explorer = project
   .in(file("modules/explorer"))
@@ -96,14 +96,6 @@ lazy val tracker = project
   ))
   .dependsOn(core)
   .settings(assembly / assemblyJarName := "tracker.jar")
-  .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
-
-lazy val dexAggregator = project
-  .in(file("modules/dex-aggregator"))
-  .withId("cardano-dex-aggregator")
-  .settings(name := "cardano-dex-aggregator")
-  .settings(commonSettings)
-  .dependsOn(core)
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val dbWriter = project
