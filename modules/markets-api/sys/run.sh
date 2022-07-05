@@ -2,6 +2,6 @@ docker run \
     -v /home/apps/analytics-api-scala/conf/app.conf:/cardano-analytics-scala/conf/conf.env:ro \
     --restart=always \
     --network="dev" \
-    --name=analytics-api-scala \
-    --expose 8081:8081 \
-    -d timooxaaa/analytics-api-spectrum:0.0.1
+    --name=markets-api-scala \
+    --publish 8081:8081 \
+    -d timooxaaa/markets-api-spectrum:0.0.1
