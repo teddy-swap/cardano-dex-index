@@ -23,10 +23,9 @@ object Pool {
     for {
       x <- AssetClass.fromString(poolDb.x)
       y <- AssetClass.fromString(poolDb.y)
-    } yield
-      Pool(
-        PoolId(poolDb.poolId),
-        AssetAmount(x, Amount(poolDb.xReserves)),
-        AssetAmount(y, Amount(poolDb.yReserves))
-      )
+    } yield Pool(
+      PoolId(poolDb.poolId),
+      AssetAmount(x, Amount(poolDb.xReserves)),
+      AssetAmount(y, Amount(poolDb.yReserves))
+    )
 }

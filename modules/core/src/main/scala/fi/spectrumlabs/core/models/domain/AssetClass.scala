@@ -14,6 +14,7 @@ final case class AssetClass(currencySymbol: String, tokenName: String)
 object AssetClass {
 
   object syntax {
+
     implicit class AssetClassOps(val in: AssetClass) extends AnyVal {
       def toCoin: Coin = Coin(s"${in.currencySymbol}.${in.tokenName}")
     }

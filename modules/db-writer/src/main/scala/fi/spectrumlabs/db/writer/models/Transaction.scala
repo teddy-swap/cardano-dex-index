@@ -29,5 +29,5 @@ object Transaction {
       in.metadata.map(_.asJson),
       in.size,
       in.timestamp
-  )
+    )
 }

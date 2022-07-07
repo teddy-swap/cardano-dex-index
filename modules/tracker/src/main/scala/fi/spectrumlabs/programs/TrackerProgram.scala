@@ -33,8 +33,7 @@ object TrackerProgram {
     F[_]: Monad: Timer: Catches,
     I[_]: Functor,
     C[_]: Foldable
-  ](producer: Producer[String, Tx, S], config: TrackerConfig)(
-    implicit
+  ](producer: Producer[String, Tx, S], config: TrackerConfig)(implicit
     cache: TrackerCache[F],
     explorer: Explorer[S, F],
     logs: Logs[I, F]
@@ -45,8 +44,7 @@ object TrackerProgram {
     S[_]: Monad: Evals[*[_], F]: FunctorFilter: Temporal[*[_], C]: Compile[*[_], F]: SemigroupK: Defer: Pace,
     F[_]: Monad: Logging: Catches,
     C[_]: Foldable
-  ](producer: Producer[String, Tx, S], config: TrackerConfig)(
-    implicit
+  ](producer: Producer[String, Tx, S], config: TrackerConfig)(implicit
     cache: TrackerCache[F],
     explorer: Explorer[S, F]
   ) extends TrackerProgram[S] {
@@ -62,8 +60,8 @@ object TrackerProgram {
               .as {
                 batch.toList.flatMap(Tx.fromExplorer).filter(Filter.txFilter).map(tx => Record(tx.hash.value, tx))
               }
-              .flatMap { txn =>
-                (emits[S](txn) |> producer.produce).drain
+              .flatMap { txns =>
+                (emits[S](txns) |> producer.produce).drain
               }
               .flatMap { _ =>
                 cache.setLastOffset(batch.size + offset)
@@ -72,8 +70,8 @@ object TrackerProgram {
                 error"The error ${err.getMessage} occurred in tracker stream."
               }
           }
+          .throttled(config.throttleRate)
       }).repeat
-        .throttled(config.throttleRate)
 
   }
 }

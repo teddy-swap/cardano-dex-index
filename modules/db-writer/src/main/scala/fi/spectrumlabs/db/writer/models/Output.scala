@@ -42,6 +42,6 @@ object Output {
         o.dataBin,
         o.spentByTxHash
       )
-  }
+    }
 
 }

@@ -1,0 +1,65 @@
+version: '3'
+services:
+  zoo:
+    image: zookeeper:3.4.9
+    hostname: zoo
+    container_name: zoo
+    networks:
+      - dev
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_PORT: 2181
+      ZOO_SERVERS: server.1=zoo:2888:3888
+    volumes:
+      - "../zk-kafka/zoo/data:/data:rw"
+      - "../zk-kafka/zoo/datalog:/datalog:rw"
+    restart: always
+  kafka1:
+    image: bitnami/kafka:latest
+    hostname: kafka1
+    container_name: kafka1
+    links:
+      - zoo
+    networks:
+      - dev
+    environment:
+      ALLOW_PLAINTEXT_LISTENER: 1
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      KAFKA_BROKER_ID: 1
+      KAFKA_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - "../zk-kafka/kafka1/data:/var/lib/kafka/data:rw"
+    restart: always
+  postgres:
+    image: postgres:10.5
+    restart: always
+    ports:
+      - 5432:5432
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=potgres
+      - POSTGRES_DB=analytics_db
+    networks:
+      - dev
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis
+    networks:
+      - dev
+    environment:
+     - ALLOW_EMPTY_PASSWORD=yes
+
+networks:
+  dev:
+    name: dev
+    driver: bridge

@@ -34,25 +34,25 @@ object App extends EnvApp[AppContext] {
       ctx                                   = AppContext.init(configs)
       implicit0(isoKRun: IsoK[RunF, InitF]) = isoKRunByContext(ctx)
       producer: Producer[String, Tx, StreamF] <- Producer.make[InitF, StreamF, RunF, String, Tx](
-                                                  configs.producer,
-                                                  configs.kafka
-                                                )
+                                                   configs.producer,
+                                                   configs.kafka
+                                                 )
       implicit0(ul: Unlift[RunF, InitF]) = Unlift.byIso(IsoK.byFunK(wr.runContextK(ctx))(wr.liftF))
       implicit0(redis: RedisCommands[RunF, String, Long]) <- mkRedis[String, Long, InitF, RunF](
-                                                              configs.redis,
-                                                              longCodec
-                                                            )
+                                                               configs.redis,
+                                                               longCodec
+                                                             )
       implicit0(backend: SttpBackend[RunF, Fs2Streams[RunF]]) <- makeBackend[AppContext, InitF, RunF](ctx, blocker)
       implicit0(cache: TrackerCache[RunF])                    <- Resource.eval(TrackerCache.create[InitF, RunF](configs.redis))
       implicit0(explorer: Explorer[StreamF, RunF]) <- Resource.eval(
-                                                       Explorer.create[StreamF, RunF, InitF](configs.explorer)
-                                                     )
-      implicit0(tracker: TrackerProgram[StreamF]) <- Resource.eval(
-                                                      TrackerProgram.create[StreamF, RunF, InitF, Chunk](
-                                                        producer,
-                                                        configs.tracker
+                                                        Explorer.create[StreamF, RunF, InitF](configs.explorer)
                                                       )
-                                                    )
+      implicit0(tracker: TrackerProgram[StreamF]) <- Resource.eval(
+                                                       TrackerProgram.create[StreamF, RunF, InitF, Chunk](
+                                                         producer,
+                                                         configs.tracker
+                                                       )
+                                                     )
       _ <- Resource.eval(tracker.run.compile.drain).mapK(ul.liftF)
     } yield ()
 }

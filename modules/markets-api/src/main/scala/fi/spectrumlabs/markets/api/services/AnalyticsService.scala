@@ -23,16 +23,14 @@ trait AnalyticsService[F[_]] {
 
 object AnalyticsService {
 
-  def create[I[_]: Functor, F[_]: Monad](config: MarketsApiConfig)(
-    implicit
+  def create[I[_]: Functor, F[_]: Monad](config: MarketsApiConfig)(implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F],
     logs: Logs[I, F]
   ): I[AnalyticsService[F]] =
     logs.forService[AnalyticsService[F]].map(implicit __ => new Tracing[F] attach new Impl[F](config))
 
-  final private class Impl[F[_]: Monad](config: MarketsApiConfig)(
-    implicit
+  final private class Impl[F[_]: Monad](config: MarketsApiConfig)(implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F]
   ) extends AnalyticsService[F] {
@@ -48,11 +46,11 @@ object AnalyticsService {
         totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
         poolVolume <- OptionT(poolsRepo.getPoolVolume(pool, period))
         xVolume = poolVolume.xVolume
-          .map(r => Amount(r.longValue).dropPenny(rateX.decimals))
-          .getOrElse(BigDecimal(0)) * rateX.rate
+                    .map(r => Amount(r.longValue).dropPenny(rateX.decimals))
+                    .getOrElse(BigDecimal(0)) * rateX.rate
         yVolume = poolVolume.yVolume
-          .map(r => Amount(r.longValue).dropPenny(rateY.decimals))
-          .getOrElse(BigDecimal(0)) * rateY.rate
+                    .map(r => Amount(r.longValue).dropPenny(rateY.decimals))
+                    .getOrElse(BigDecimal(0)) * rateY.rate
         totalVolume = (xVolume + yVolume).setScale(0, RoundingMode.HALF_UP)
       } yield PoolInfo(totalTvl, totalVolume)).value
 

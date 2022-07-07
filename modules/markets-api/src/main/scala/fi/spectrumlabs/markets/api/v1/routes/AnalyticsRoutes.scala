@@ -7,8 +7,7 @@ import fi.spectrumlabs.core.network.syntax._
 import fi.spectrumlabs.markets.api.v1.endpoints.PoolInfoEndpoints
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 
-final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer](
-  implicit
+final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer](implicit
   service: AnalyticsService[F],
   opts: Http4sServerOptions[F, F]
 ) {
@@ -20,16 +19,14 @@ final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer](
 
   def routes = getPoolInfoR
 
-  def getPoolInfoR = interpreter.toRoutes(getPoolInfo) {
-    case (id, period) =>
-      service.getPoolInfo(id, period).orNotFound(s"PoolInfo{id=$id}")
+  def getPoolInfoR = interpreter.toRoutes(getPoolInfo) { case (id, period) =>
+    service.getPoolInfo(id, period).orNotFound(s"PoolInfo{id=$id}")
   }
 }
 
 object AnalyticsRoutes {
 
-  def make[F[_]: Concurrent: ContextShift: Timer](
-    implicit
+  def make[F[_]: Concurrent: ContextShift: Timer](implicit
     service: AnalyticsService[F],
     opts: Http4sServerOptions[F, F]
   ): HttpRoutes[F] =

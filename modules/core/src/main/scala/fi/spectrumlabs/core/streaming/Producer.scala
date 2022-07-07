@@ -45,8 +45,7 @@ object Producer {
     G[_]: Monad,
     K: RecordSerializer[I, *],
     V: RecordSerializer[I, *]
-  ](conf: ProducerConfig, kafka: KafkaConfig)(
-    implicit
+  ](conf: ProducerConfig, kafka: KafkaConfig)(implicit
     isoKFG: IsoK[F, Stream[G, *]],
     isoKGI: IsoK[G, I]
   ): Resource[I, Producer[K, V, F]] = {
@@ -67,9 +66,8 @@ object Producer {
   ) extends Producer[K, V, Stream[F, *]] {
 
     def produce: Pipe[F, Record[K, V], Unit] =
-      _.map {
-        case Record(k, v) =>
-          ProducerRecords.one(ProducerRecord(conf.topicId.value, k, v))
+      _.map { case Record(k, v) =>
+        ProducerRecords.one(ProducerRecord(conf.topicId.value, k, v))
       }.evalMap(kafkaProducer.produce).mapAsync(conf.parallelism)(identity).drain
   }
 

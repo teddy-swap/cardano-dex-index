@@ -23,15 +23,13 @@ trait TrackerCache[F[_]] {
 
 object TrackerCache {
 
-  def create[I[_]: Functor, F[_]: MonadThrow: Sleep](config: RedisConfig)(
-    implicit
+  def create[I[_]: Functor, F[_]: MonadThrow: Sleep](config: RedisConfig)(implicit
     redis: RedisCommands[F, String, Long],
     logs: Logs[I, F]
   ): I[TrackerCache[F]] =
     logs.forService[TrackerCache[F]].map(implicit __ => new Impl[F](config))
 
-  private final class Impl[F[_]: MonadThrow: Logging: Sleep](config: RedisConfig)(
-    implicit
+  private final class Impl[F[_]: MonadThrow: Logging: Sleep](config: RedisConfig)(implicit
     redis: RedisCommands[F, String, Long]
   ) extends TrackerCache[F] {
 

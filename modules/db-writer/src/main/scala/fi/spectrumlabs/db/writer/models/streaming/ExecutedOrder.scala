@@ -17,6 +17,7 @@ final case class ExecutedOrder[A](
 )
 
 object ExecutedOrder {
+
   implicit def encoder[A: Encoder]: Encoder[ExecutedOrder[A]] =
     deriveMagnoliaEncoder
 

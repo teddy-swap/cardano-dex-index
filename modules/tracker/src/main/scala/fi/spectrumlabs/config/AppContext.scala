@@ -8,7 +8,7 @@ import tofu.optics.macros.{promote, ClassyOptics}
 @ClassyOptics
 @derive(loggable)
 final case class AppContext(
-  @promote config: ConfigBundle,
+  @promote config: ConfigBundle
 )
 
 object AppContext extends WithContext.Companion[AppContext] {

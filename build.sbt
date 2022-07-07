@@ -37,7 +37,7 @@ lazy val dexIndex = project
   .settings(idePackagePrefix := Some("fi.spectrumlabs"))
   .settings(commonSettings)
   .settings(name := "cardano-dex-index")
-  .aggregate(core, tracker, dexAggregator, dbWriter, api, explorer, ratesResolver)
+  .aggregate(core, tracker, dbWriter, api, explorer, ratesResolver)
 
 lazy val explorer = project
   .in(file("modules/explorer"))
@@ -98,14 +98,6 @@ lazy val tracker = project
   .settings(assembly / assemblyJarName := "tracker.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
-lazy val dexAggregator = project
-  .in(file("modules/dex-aggregator"))
-  .withId("cardano-dex-aggregator")
-  .settings(name := "cardano-dex-aggregator")
-  .settings(commonSettings)
-  .dependsOn(core)
-  .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
-
 lazy val dbWriter = project
   .in(file("modules/db-writer"))
   .withId("cardano-db-writer")
@@ -142,6 +134,7 @@ lazy val api = project
     Libraries.http4sServer
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "markets-api.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val ratesResolver = project
@@ -158,4 +151,5 @@ lazy val ratesResolver = project
     Libraries.mouse
   ))
   .dependsOn(core)
+  .settings(assembly / assemblyJarName := "rates-resolver.jar")
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)

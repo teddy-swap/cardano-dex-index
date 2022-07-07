@@ -37,8 +37,7 @@ object HttpServer {
   def make[
     I[_]: ConcurrentEffect: ContextShift: Timer,
     F[_]: Concurrent: ContextShift: Timer: Unlift[*[_], I]
-  ](conf: HttpConfig, ec: ExecutionContext)(
-    implicit
+  ](conf: HttpConfig, ec: ExecutionContext)(implicit
     analyticsService: AnalyticsService[F],
     opts: Http4sServerOptions[F, F]
   ): Resource[I, Server] = {

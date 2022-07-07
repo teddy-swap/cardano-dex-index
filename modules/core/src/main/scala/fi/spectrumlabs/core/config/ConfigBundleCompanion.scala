@@ -7,8 +7,7 @@ import scala.reflect.ClassTag
 
 trait ConfigBundleCompanion[T] {
 
-  def load[F[_]: Sync: ContextShift](pathOpt: Option[String], blocker: Blocker)(
-    implicit
+  def load[F[_]: Sync: ContextShift](pathOpt: Option[String], blocker: Blocker)(implicit
     r: ConfigReader[T],
     ct: ClassTag[T]
   ): F[T] =

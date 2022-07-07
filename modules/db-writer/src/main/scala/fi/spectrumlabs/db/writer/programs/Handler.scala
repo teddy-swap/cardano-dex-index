@@ -31,8 +31,7 @@ object Handler {
   ](
     config: WriterConfig,
     handlerName: String
-  )(
-    implicit
+  )(implicit
     consumer: Consumer[_, Option[A], S, F],
     handlers: NonEmptyList[Handle[A, F]],
     logs: Logs[I, F]
@@ -44,8 +43,7 @@ object Handler {
     S[_]: Monad: Evals[*[_], F]: Temporal[*[_], C]: Catches,
     F[_]: Monad: Parallel: Logging,
     C[_]: Foldable
-  ](config: WriterConfig, name: String)(
-    implicit
+  ](config: WriterConfig, name: String)(implicit
     consumer: Consumer[_, Option[A], S, F],
     handlers: NonEmptyList[Handle[A, F]]
   ) extends Handler[S] {

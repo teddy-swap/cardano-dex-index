@@ -25,17 +25,16 @@ object Tx {
     for {
       in  <- NonEmptyList.fromList(tx.inputs)
       out <- NonEmptyList.fromList(tx.outputs)
-    } yield
-      Tx(
-        tx.blockHash,
-        tx.blockIndex,
-        tx.hash,
-        in.map(Input.fromExplorer),
-        out.map(Output.fromExplorer),
-        tx.invalidBefore,
-        tx.invalidHereafter,
-        tx.metadata.map(Meta.fromExplorer),
-        tx.size,
-        tx.timestamp
-      )
+    } yield Tx(
+      tx.blockHash,
+      tx.blockIndex,
+      tx.hash,
+      in.map(Input.fromExplorer),
+      out.map(Output.fromExplorer),
+      tx.invalidBefore,
+      tx.invalidHereafter,
+      tx.metadata.map(Meta.fromExplorer),
+      tx.size,
+      tx.timestamp
+    )
 }
