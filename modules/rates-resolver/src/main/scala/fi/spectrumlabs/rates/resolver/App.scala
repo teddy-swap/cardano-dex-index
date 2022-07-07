@@ -11,7 +11,7 @@ import fi.spectrumlabs.rates.resolver.config.{AppContext, ConfigBundle}
 import fi.spectrumlabs.rates.resolver.gateways.{Metadata, Network}
 import fi.spectrumlabs.rates.resolver.programs.Resolver
 import fi.spectrumlabs.rates.resolver.repositories.{PoolsRepo, RatesRepo}
-import fi.spectrumlabs.rates.resolver.services.{MetadataService, PoolsService}
+import fi.spectrumlabs.rates.resolver.services.{MetadataService, PoolsService, ResolverService}
 import sttp.client3.SttpBackend
 import tofu.doobie.log.EmbeddableLogHandler
 import tofu.doobie.transactor.Txr
@@ -53,6 +53,7 @@ object App extends EnvApp[AppContext] {
       implicit0(network: Network[RunF])             <- Resource.eval(Network.create[InitF, RunF](configs.network))
       implicit0(meta: Metadata[RunF])               <- Resource.eval(Metadata.create[InitF, RunF](configs.network))
       implicit0(metaService: MetadataService[RunF]) <- Resource.eval(MetadataService.create[InitF, RunF])
+      implicit0(rService: ResolverService[RunF])    <- Resource.eval(ResolverService.create[InitF, RunF](configs.resolver))
 
       resolver <- Resource.eval(Resolver.create[InitF, StreamF, RunF](configs.resolver))
       _        <- Resource.eval(resolver.run.compile.drain).mapK(isoKRun.tof)

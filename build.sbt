@@ -148,7 +148,9 @@ lazy val ratesResolver = project
     Libraries.doobieCore,
     Libraries.tofuZio,
     Libraries.tofuFs2,
-    Libraries.mouse
+    Libraries.mouse,
+    Libraries.specs2Core,
+    Libraries.scalaCheck
   ))
   .dependsOn(core)
   .settings(assembly / assemblyJarName := "rates-resolver.jar")
