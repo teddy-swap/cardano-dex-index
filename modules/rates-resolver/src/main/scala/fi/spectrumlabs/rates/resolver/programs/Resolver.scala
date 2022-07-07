@@ -23,8 +23,7 @@ object Resolver {
     I[_]: Functor,
     S[_]: Monad: Evals[*[_], F]: SemigroupK: Defer: Pace,
     F[_]: Monad: Parallel
-  ](config: ResolverConfig)(
-    implicit
+  ](config: ResolverConfig)(implicit
     repo: RatesRepo[F],
     resolver: ResolverService[F],
     logs: Logs[I, F]
@@ -34,8 +33,7 @@ object Resolver {
   final private class Impl[
     S[_]: Monad: Evals[*[_], F]: SemigroupK: Defer: Pace,
     F[_]: Monad: Logging: Parallel
-  ](config: ResolverConfig)(
-    implicit
+  ](config: ResolverConfig)(implicit
     repo: RatesRepo[F],
     resolver: ResolverService[F]
   ) extends Resolver[S] {

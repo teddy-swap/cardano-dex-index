@@ -22,8 +22,7 @@ object ResolverService {
 
   def create[I[_]: Functor, F[_]: Monad](
     config: ResolverConfig
-  )(
-    implicit
+  )(implicit
     pools: PoolsService[F],
     network: Network[F],
     metadataService: MetadataService[F],
@@ -31,8 +30,7 @@ object ResolverService {
   ): I[ResolverService[F]] =
     logs.forService[ResolverService[F]].map(implicit __ => new Impl[F](config))
 
-  final private class Impl[F[_]: Monad: Logging](config: ResolverConfig)(
-    implicit
+  final private class Impl[F[_]: Monad: Logging](config: ResolverConfig)(implicit
     pools: PoolsService[F],
     network: Network[F],
     metadataService: MetadataService[F]
@@ -44,47 +42,46 @@ object ResolverService {
           (for {
             pools <- pools.getAllLatest(config.minLiquidityValue).flatTap(pools => trace"Pools from DB are: $pools.")
             info  <- metadataService.getTokensMeta(pools.flatMap(p => p.x.asset :: p.y.asset :: Nil))
-          } yield (pools, info)).map {
-            case (pools, info) =>
-              val (poolsWithAda, poolsWithoutAda) = pools.partition(_.contains(AdaAssetClass))
+          } yield (pools, info)).map { case (pools, info) =>
+            val (poolsWithAda, poolsWithoutAda) = pools.partition(_.contains(AdaAssetClass))
 
-              val resolvedByAda =
-                poolsWithAda
-                  .map { r =>
-                    val xDecimal = info.find(_.asset == r.x.asset).map(_.decimals).getOrElse(DefaultDecimal)
-                    val yDecimal = info.find(_.asset == r.y.asset).map(_.decimals).getOrElse(DefaultDecimal)
-                    ResolvedRate(r, AdaAssetClass, xDecimal, yDecimal)
-                  }
+            val resolvedByAda =
+              poolsWithAda
+                .map { r =>
+                  val xDecimal = info.find(_.asset == r.x.asset).map(_.decimals).getOrElse(DefaultDecimal)
+                  val yDecimal = info.find(_.asset == r.y.asset).map(_.decimals).getOrElse(DefaultDecimal)
+                  ResolvedRate(r, AdaAssetClass, xDecimal, yDecimal)
+                }
 
-              val resolvedViaAda =
-                poolsWithoutAda
-                  .flatMap { pool =>
-                    Either
-                      .catchNonFatal {
-                        poolsWithAda
-                          .filter(_.contains(pool.x.asset, pool.y.asset))
-                          .maxBy { p =>
-                            if (p.x.asset === AdaAssetClass)
-                              resolvedByAda.find(_.asset === pool.y.asset).map(tvl(p, adaPrice, _))
-                            else
-                              resolvedByAda.find(_.asset === pool.x.asset).map(tvl(p, _, adaPrice))
-                          }
-                      }
-                      .toOption
-                      .flatMap { r =>
-                        resolvedByAda.find(_.find(r.x.asset, r.y.asset, r.id))
-                      }
-                      .map { r =>
-                        val xDecimal = info.find(_.asset == pool.x.asset).map(_.decimals).getOrElse(DefaultDecimal)
-                        val yDecimal = info.find(_.asset == pool.y.asset).map(_.decimals).getOrElse(DefaultDecimal)
-                        val a        = ResolvedRate(pool, r, xDecimal, yDecimal)
-                        a
-                      }
-                  }
+            val resolvedViaAda =
+              poolsWithoutAda
+                .flatMap { pool =>
+                  Either
+                    .catchNonFatal {
+                      poolsWithAda
+                        .filter(_.contains(pool.x.asset, pool.y.asset))
+                        .maxBy { p =>
+                          if (p.x.asset === AdaAssetClass)
+                            resolvedByAda.find(_.asset === pool.y.asset).map(tvl(p, adaPrice, _))
+                          else
+                            resolvedByAda.find(_.asset === pool.x.asset).map(tvl(p, _, adaPrice))
+                        }
+                    }
+                    .toOption
+                    .flatMap { r =>
+                      resolvedByAda.find(_.find(r.x.asset, r.y.asset, r.id))
+                    }
+                    .map { r =>
+                      val xDecimal = info.find(_.asset == pool.x.asset).map(_.decimals).getOrElse(DefaultDecimal)
+                      val yDecimal = info.find(_.asset == pool.y.asset).map(_.decimals).getOrElse(DefaultDecimal)
+                      val a        = ResolvedRate(pool, r, xDecimal, yDecimal)
+                      a
+                    }
+                }
 
-              val s = adaPrice :: (resolvedByAda ::: resolvedViaAda)
-                .map(rate => rate.copy(rate.asset, rate.rate * adaPrice.rate).setScale)
-              s
+            val s = adaPrice :: (resolvedByAda ::: resolvedViaAda)
+              .map(rate => rate.copy(rate.asset, rate.rate * adaPrice.rate).setScale)
+            s
           }
         }
         .flatTap(resolved => info"Resolved rates are: $resolved.")
