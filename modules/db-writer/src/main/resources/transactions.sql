@@ -48,9 +48,9 @@ create table if not exists redeemer (
     id Integer not null default nextval('redeemer_id_seq'),
     tx_hash Text not null,
     tx_index BIGINT not null,
-    unit_mem Integer not null,
-    unit_step Integer not null,
-    fee Integer not null,
+    unit_mem BIGINT not null,
+    unit_step BIGINT not null,
+    fee BIGINT not null,
     purpose Text not null,
     index Integer not null,
     script_hash Text not null,
@@ -70,4 +70,3 @@ create unique index if not exists tx_in_out on input (out_ref, out_index);
 
 create unique index if not exists redeemer_tx on redeemer (tx_hash, tx_index);
 create unique index if not exists redeemer_id on redeemer (index);
-
