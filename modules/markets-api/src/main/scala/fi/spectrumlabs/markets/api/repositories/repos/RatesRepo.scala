@@ -32,19 +32,19 @@ object RatesRepo {
 
     def get(asset: AssetClass, poolId: PoolId): F[Option[ResolvedRate]] =
       cmd.get(mkKey(asset, poolId)).map(_.flatMap(parse(_).flatMap(_.as[ResolvedRate]).toOption))
-
-    def mkKey(asset: AssetClass, poolId: PoolId): String =
-      if (asset === AdaAssetClass) s"${asset.show}.${AdaDefaultPoolId.value}"
-      else s"${asset.show}.${poolId.value}"
   }
 
   final private class Tracing[F[_]: Monad: Logging] extends RatesRepo[Mid[F, *]] {
 
     def get(asset: AssetClass, poolId: PoolId): Mid[F, Option[ResolvedRate]] =
       for {
-        _ <- trace"Going to get rate for $asset and $poolId"
+        _ <- trace"Going to get rate for $asset and $poolId. Keys is ${mkKey(asset, poolId)}"
         r <- _
         _ <- trace"Rate for $asset and $poolId is $r"
       } yield r
   }
+
+  private def mkKey(asset: AssetClass, poolId: PoolId): String =
+    if (asset === AdaAssetClass) s"${asset.show}.${AdaDefaultPoolId.value}"
+    else s"${asset.show}.${poolId.value}"
 }
