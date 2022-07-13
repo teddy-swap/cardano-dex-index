@@ -40,7 +40,7 @@ object ResolverService {
       network.getAdaPrice
         .flatMap { adaPrice =>
           (for {
-            pools <- pools.getAllLatest(config.minLiquidityValue).flatTap(pools => trace"Pools from DB are: $pools.")
+            pools <- pools.getAllLatest(config.minLiquidityValue)
             info  <- metadataService.getTokensMeta(pools.flatMap(p => p.x.asset :: p.y.asset :: Nil))
           } yield (pools, info)).map { case (pools, info) =>
             val (poolsWithAda, poolsWithoutAda) = pools.partition(_.contains(AdaAssetClass))
