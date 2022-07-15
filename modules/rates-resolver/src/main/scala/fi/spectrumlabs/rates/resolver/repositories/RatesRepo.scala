@@ -35,7 +35,7 @@ object RatesRepo {
 
     def put(rate: ResolvedRate): Mid[F, Unit] =
       for {
-        _ <- trace"Going to put new resolved rate $rate into storage"
+        _ <- trace"Going to put new resolved rate $rate into storage. Key is ${rate.cacheKey}."
         _ <- _
         _ <- trace"Rate $rate put successfully."
       } yield ()

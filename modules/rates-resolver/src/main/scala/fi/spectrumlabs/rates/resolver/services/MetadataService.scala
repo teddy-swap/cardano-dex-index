@@ -28,7 +28,7 @@ object MetadataService {
 
     def getTokensMeta(tokens: List[AssetClass]): F[List[Meta]] =
       tokens.distinct
-        .filterNot(_ =!= AdaAssetClass)
+        .filter(_ =!= AdaAssetClass)
         .parTraverse(asset => meta.getTokenMeta(asset).mapIn(r => Meta(r.decimals, asset)))
         .map(_.flatten)
         .map(AdaMetadata :: _)

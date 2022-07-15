@@ -49,6 +49,7 @@ object MakeKafkaConsumer {
                 .withBootstrapServers(kafka.bootstrapServers.mkString(","))
                 .withGroupId(config.groupId.value)
                 .withClientId(config.clientId.value)
+                .withEnableAutoCommit(false)
             KafkaConsumer.stream(settings)
           }
         }

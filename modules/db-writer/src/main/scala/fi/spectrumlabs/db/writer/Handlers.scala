@@ -13,15 +13,24 @@ import fi.spectrumlabs.db.writer.models.{Input, Output, Redeemer, Transaction}
 import fi.spectrumlabs.db.writer.persistence.PersistBundle
 import fi.spectrumlabs.db.writer.programs.Handler
 import fs2.Chunk
+import tofu.WithContext
 import tofu.fs2Instances._
 import tofu.logging.Logs
 import zio.interop.catz._
 
 object Handlers {
 
-  final val TxHandlerName             = "Tx"
-  final val ExecutedOrdersHandlerName = "ExecutedOrder"
-  final val PoolsHandler              = "PoolsHandler"
+  val TxHandlerName             = "Tx"
+  val ExecutedOrdersHandlerName = "ExecutedOrder"
+  val PoolsHandler              = "PoolsHandler"
+  val TxHandleName              = "Transaction"
+  val InHandleName              = "Input"
+  val OutHandleName             = "Output"
+  val ReedHandleName            = "Redeemer"
+  val DepositHandleName         = "Deposit"
+  val SwapHandleName            = "Swap"
+  val RedeemHandleName          = "Redeem"
+  val PoolHandleName            = "Pool"
 
   def makeTxHandler(config: WriterConfig)(implicit
     bundle: PersistBundle[RunF],
@@ -30,10 +39,10 @@ object Handlers {
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {
     import bundle._
     for {
-      txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction)
-      in   <- Handle.createNel[Tx, Input, InitF, RunF](input)
-      out  <- Handle.createNel[Tx, Output, InitF, RunF](output)
-      reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer)
+      txn  <- Handle.createOne[Tx, Transaction, InitF, RunF](transaction, TxHandleName)
+      in   <- Handle.createNel[Tx, Input, InitF, RunF](input, InHandleName)
+      out  <- Handle.createNel[Tx, Output, InitF, RunF](output, OutHandleName)
+      reed <- Handle.createList[Tx, Redeemer, InitF, RunF](redeemer, ReedHandleName)
       implicit0(nelHandlers: NonEmptyList[Handle[Tx, RunF]]) = NonEmptyList.of(txn, in, out, reed)
       handler <- Handler.create[Tx, StreamF, RunF, Chunk, InitF](config, TxHandlerName)
     } yield handler
@@ -46,9 +55,10 @@ object Handlers {
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {
     import bundle._
     for {
-      deposit <- Handle.createOption[ExecutedOrderEvent, ExecutedDeposit, InitF, RunF](executedDeposit)
-      swap    <- Handle.createOption[ExecutedOrderEvent, ExecutedSwap, InitF, RunF](executedSwap)
-      redeem  <- Handle.createOption[ExecutedOrderEvent, ExecutedRedeem, InitF, RunF](executedRedeem)
+      deposit <-
+        Handle.createOption[ExecutedOrderEvent, ExecutedDeposit, InitF, RunF](executedDeposit, DepositHandleName)
+      swap   <- Handle.createOption[ExecutedOrderEvent, ExecutedSwap, InitF, RunF](executedSwap, SwapHandleName)
+      redeem <- Handle.createOption[ExecutedOrderEvent, ExecutedRedeem, InitF, RunF](executedRedeem, RedeemHandleName)
       implicit0(nelHandlers: NonEmptyList[Handle[ExecutedOrderEvent, RunF]]) = NonEmptyList.of(deposit, swap, redeem)
       handler <- Handler.create[ExecutedOrderEvent, StreamF, RunF, Chunk, InitF](config, ExecutedOrdersHandlerName)
     } yield handler
@@ -61,7 +71,7 @@ object Handlers {
   ): Resource[InitF, Handler[StreamF]] = Resource.eval {
     import bundle._
     for {
-      pool <- Handle.createOne[PoolEvent, Pool, InitF, RunF](pool)
+      pool <- Handle.createOne[PoolEvent, Pool, InitF, RunF](pool, PoolHandleName)
       implicit0(nelHandlers: NonEmptyList[Handle[PoolEvent, RunF]]) = NonEmptyList.of(pool)
       handler <- Handler.create[PoolEvent, StreamF, RunF, Chunk, InitF](config, PoolsHandler)
     } yield handler

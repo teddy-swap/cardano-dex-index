@@ -1,0 +1,1 @@
+docker build -t timooxaaa/markets-api-spectrum:0.0.1 -f modules/markets-api/sys/Dockerfile .
