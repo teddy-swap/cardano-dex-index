@@ -1,0 +1,1 @@
+docker build -t timooxaaa/rates-resolver-spectrum:0.0.1 -f modules/rates-resolver/sys/Dockerfile .

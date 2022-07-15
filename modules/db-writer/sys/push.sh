@@ -1,0 +1,1 @@
+docker push timooxaaa/db-writer-spectrum:0.0.1

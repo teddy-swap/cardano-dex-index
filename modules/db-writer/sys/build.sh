@@ -1,0 +1,1 @@
+docker build -t timooxaaa/db-writer-spectrum:0.0.1 -f modules/db-writer/sys/Dockerfile .

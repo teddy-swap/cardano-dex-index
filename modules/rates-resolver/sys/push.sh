@@ -1,0 +1,1 @@
+docker push timooxaaa/rates-resolver-spectrum:0.0.1
