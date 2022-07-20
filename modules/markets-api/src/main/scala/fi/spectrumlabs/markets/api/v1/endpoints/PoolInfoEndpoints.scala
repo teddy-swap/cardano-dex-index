@@ -17,7 +17,7 @@ object PoolInfoEndpoints {
   def getPoolInfo: Endpoint[(String, FiniteDuration), HttpError, PoolInfo, Any] =
     baseEndpoint.get
       .in(pathPrefix / "info")
-      .in(path[String].description("Pool id"))
+      .in(path[String].description("Pool id").name("poolId"))
       .in(period)
       .out(jsonBody[PoolInfo])
       .tag(pathPrefix)
