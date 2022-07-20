@@ -6,7 +6,7 @@ import sttp.tapir._
 object OpenApiEndpoints {
 
   private val PathPrefix = "docs"
-  private val Group = "docs"
+  private val Group      = "docs"
 
   def endpoints: List[Endpoint[_, _, _, _]] = apiSpecDef :: Nil
 
