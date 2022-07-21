@@ -23,7 +23,7 @@ object PoolInfoEndpoints {
           .name("poolId")
           .example("93a4e3ab42b052cbe48bee3a6507d3ec06b9555994c1e6815f296108.484f534b59745f414441745f6e6674")
       )
-      .in(period)
+      .in(after)
       .out(jsonBody[PoolInfo])
       .tag(pathPrefix)
       .name("Info by pool id")

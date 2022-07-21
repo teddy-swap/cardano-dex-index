@@ -36,13 +36,13 @@ package object endpoints {
       case None        => DecodeResult.Mismatch("Expected correct ts string", s)
     }
 
-  def period: EndpointInput[FiniteDuration] =
-    query[Long]("period")
+  def after: EndpointInput[FiniteDuration] =
+    query[Long]("after")
       .validate(Validator.min(0))
       .validate(Validator.max(Long.MaxValue))
       .map { input =>
         FiniteDuration(Duration(input, TimeUnit.SECONDS).toSeconds, SECONDS)
       }(_.toSeconds)
-      .description("Period in seconds after which statistic is accumulated.")
+      .description("Period in seconds after which statistic is accumulated. Unix Timestamp.")
       .example(FiniteDuration(Duration(1658379570, TimeUnit.SECONDS).toSeconds, SECONDS))
 }
