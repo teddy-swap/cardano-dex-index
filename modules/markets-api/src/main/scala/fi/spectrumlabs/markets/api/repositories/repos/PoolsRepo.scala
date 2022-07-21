@@ -4,7 +4,7 @@ import cats.{FlatMap, Functor}
 import derevo.derive
 import doobie.ConnectionIO
 import fi.spectrumlabs.core.models.db.Pool
-import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
+import fi.spectrumlabs.core.models.domain.{PoolId, Pool => DomainPool}
 import fi.spectrumlabs.markets.api.models.{PoolOverview, PoolVolume}
 import fi.spectrumlabs.markets.api.repositories.sql.PoolsSql
 import tofu.doobie.LiftConnectionIO
@@ -24,7 +24,7 @@ import scala.concurrent.duration.FiniteDuration
 trait PoolsRepo[D[_]] {
   def getPools: D[List[PoolDb]]
 
-  def getPoolById(poolId: String, minLiquidityValue: Long): D[Option[Pool]]
+  def getPoolById(poolId: PoolId, minLiquidityValue: Long): D[Option[Pool]]
 
   def getPoolVolume(pool: DomainPool, period: FiniteDuration): D[Option[PoolVolume]]
 }
@@ -47,7 +47,7 @@ object PoolsRepo {
     def getPools: ConnectionIO[List[PoolDb]] =
       sql.getPools.to[List]
 
-    def getPoolById(poolId: String, minLiquidityValue: Long): ConnectionIO[Option[Pool]] =
+    def getPoolById(poolId: PoolId, minLiquidityValue: Long): ConnectionIO[Option[Pool]] =
       sql.getPool(poolId, minLiquidityValue).option
 
     def getPoolVolume(pool: DomainPool, period: FiniteDuration): ConnectionIO[Option[PoolVolume]] =
@@ -63,7 +63,7 @@ object PoolsRepo {
         _ <- trace"Pools from db are $r"
       } yield r
 
-    def getPoolById(poolId: String, minLiquidityValue: Long): Mid[F, Option[Pool]] =
+    def getPoolById(poolId: PoolId, minLiquidityValue: Long): Mid[F, Option[Pool]] =
       for {
         _ <- trace"Going to get pool with id $poolId and min lq value $minLiquidityValue"
         r <- _

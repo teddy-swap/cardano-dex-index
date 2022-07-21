@@ -22,7 +22,7 @@ import scala.math.BigDecimal.RoundingMode
 trait AnalyticsService[F[_]] {
   def getPoolsOverview(period: FiniteDuration): F[List[PoolOverview]]
 
-  def getPoolInfo(poolId: String, period: FiniteDuration): F[Option[PoolInfo]]
+  def getPoolInfo(poolId: PoolId, period: FiniteDuration): F[Option[PoolInfo]]
 }
 
 object AnalyticsService {
@@ -44,11 +44,11 @@ object AnalyticsService {
         _.parTraverse { p =>
           getPoolInfo(p.poolId, period).map { info =>
             PoolOverview(
-              PoolId(p.poolId),
+              p.poolId,
               p.x,
               p.y,
-              Amount(p.xReserves),
-              Amount(p.yReserves),
+              p.xReserves,
+              p.yReserves,
               info,
               PoolFee(p.feeNum, p.feeDen)
             )
@@ -56,7 +56,7 @@ object AnalyticsService {
         }
       )
 
-    def getPoolInfo(poolId: String, period: FiniteDuration): F[Option[PoolInfo]] =
+    def getPoolInfo(poolId: PoolId, period: FiniteDuration): F[Option[PoolInfo]] =
       (for {
         poolDb <- OptionT(poolsRepo.getPoolById(poolId, config.minLiquidityValue))
         pool = Pool.fromDb(poolDb)
@@ -86,7 +86,7 @@ object AnalyticsService {
         _ <- trace"Pools overview is $r"
       } yield r
 
-    def getPoolInfo(poolId: String, period: FiniteDuration): Mid[F, Option[PoolInfo]] =
+    def getPoolInfo(poolId: PoolId, period: FiniteDuration): Mid[F, Option[PoolInfo]] =
       for {
         _ <- trace"Going to get pool info for pool $poolId for period $period"
         r <- _

@@ -4,7 +4,7 @@ import doobie.util.log.LogHandler
 import doobie.implicits._
 import doobie.util.query.Query0
 import fi.spectrumlabs.core.models.db.Pool
-import fi.spectrumlabs.core.models.domain.{Pool => DomainPool}
+import fi.spectrumlabs.core.models.domain.{PoolId, Pool => DomainPool}
 import fi.spectrumlabs.markets.api.models.PoolVolume
 import fi.spectrumlabs.markets.api.repositories._
 
@@ -37,7 +37,7 @@ final class PoolsSql(implicit lh: LogHandler) {
         |	AND p.timestamp = pLatest.ts
        """.stripMargin.query[PoolDb]
 
-  def getPool(poolId: String, minLiquidityValue: Long): Query0[Pool] =
+  def getPool(poolId: PoolId, minLiquidityValue: Long): Query0[Pool] =
     sql"""
          |SELECT
          |	pool_id,

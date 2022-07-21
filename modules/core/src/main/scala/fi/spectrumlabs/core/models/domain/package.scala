@@ -5,21 +5,28 @@ import doobie.util.{Get, Put}
 import fi.spectrumlabs.core.models.domain.{Amount, PoolId}
 import io.circe.{Decoder, Encoder}
 import io.estatico.newtype.macros.newtype
-import sttp.tapir.{Schema, Validator}
+import scodec.bits.ByteVector
+import sttp.tapir.{Codec, Schema, Validator}
 import tofu.logging.Loggable
+import scodec.bits.ByteVector
+
+import java.nio.charset.Charset
 
 package object domain {
+  implicit val charset: Charset = Charset.defaultCharset()
+
   @newtype final case class PoolId(value: String)
 
   object PoolId {
-    implicit val loggable: Loggable[PoolId]   = deriving
-    implicit val get: Get[PoolId]             = deriving
-    implicit val put: Put[PoolId]             = deriving
-    implicit val eq: Eq[PoolId]               = deriving
-    implicit val encoder: Encoder[PoolId]     = deriving
-    implicit val decoder: Decoder[PoolId]     = deriving
-    implicit val schema: Schema[PoolId]       = deriving
-    implicit val validator: Validator[PoolId] = schema.validator
+    implicit val loggable: Loggable[PoolId]           = deriving
+    implicit val get: Get[PoolId]                     = deriving
+    implicit val put: Put[PoolId]                     = deriving
+    implicit val eq: Eq[PoolId]                       = deriving
+    implicit val encoder: Encoder[PoolId]             = deriving
+    implicit val decoder: Decoder[PoolId]             = deriving
+    implicit val schema: Schema[PoolId]               = deriving
+    implicit val validator: Validator[PoolId]         = schema.validator
+    implicit def plainCodec: Codec.PlainCodec[PoolId] = deriving
   }
 
   @newtype final case class Amount(value: Long) {
