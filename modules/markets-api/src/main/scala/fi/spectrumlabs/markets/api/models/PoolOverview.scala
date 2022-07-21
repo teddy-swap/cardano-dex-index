@@ -11,9 +11,9 @@ final case class PoolOverview(
   id: PoolId,
   x: AssetClass,
   y: AssetClass,
-  xAmount: Amount,
-  yAmount: Amount,
-  statistic: Option[PoolInfo],
+  xReserves: Amount,
+  yReserves: Amount,
+  statistics: Option[PoolInfo],
   fee: PoolFee
 )
 
