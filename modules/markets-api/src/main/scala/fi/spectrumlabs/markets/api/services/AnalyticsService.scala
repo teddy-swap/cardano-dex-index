@@ -43,13 +43,10 @@ object AnalyticsService {
       poolsRepo.getPools.flatMap(
         _.parTraverse { p =>
           getPoolInfo(p.poolId, period).map { info =>
-            for {
-              x <- AssetClass.fromString(p.x)
-              y <- AssetClass.fromString(p.y)
-            } yield PoolOverview(
+            PoolOverview(
               PoolId(p.poolId),
-              x,
-              y,
+              p.x,
+              p.y,
               Amount(p.xReserves),
               Amount(p.yReserves),
               info,
@@ -57,7 +54,6 @@ object AnalyticsService {
             )
           }
         }
-          .map(_.flatten)
       )
 
     def getPoolInfo(poolId: String, period: FiniteDuration): F[Option[PoolInfo]] =
