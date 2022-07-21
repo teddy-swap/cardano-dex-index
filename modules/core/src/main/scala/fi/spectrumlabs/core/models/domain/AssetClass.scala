@@ -6,6 +6,7 @@ import cats.{Eq, Show}
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
 import doobie.util.Put
+import sttp.tapir.Schema
 import tofu.logging.derivation.loggable
 
 @derive(decoder, encoder, loggable)
@@ -26,6 +27,8 @@ object AssetClass {
   implicit val show: Show[AssetClass] = asset => s"${asset.currencySymbol}.${asset.tokenName}"
 
   implicit val put: Put[AssetClass] = implicitly[Put[String]].contramap(_.show)
+
+  implicit val schema: Schema[AssetClass] = Schema.derived
 
   def fromString(in: String): Option[AssetClass] =
     in match {
