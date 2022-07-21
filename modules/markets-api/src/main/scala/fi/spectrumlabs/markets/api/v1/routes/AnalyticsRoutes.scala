@@ -26,9 +26,7 @@ final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer: AdaptThrowabl
     service.getPoolInfo(id, period).orNotFound(s"PoolInfo{id=$id}")
   }
 
-  def getPoolsOverviewR = interpreter.toRoutes(getPoolsOverview) { case (period) =>
-    service.getPoolsOverview(period).adaptThrowable.value
-  }
+  def getPoolsOverviewR = interpreter.toRoutes(getPoolsOverview)(service.getPoolsOverview(_).adaptThrowable.value)
 }
 
 object AnalyticsRoutes {

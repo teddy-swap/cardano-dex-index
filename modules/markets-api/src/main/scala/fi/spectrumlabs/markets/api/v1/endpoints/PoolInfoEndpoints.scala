@@ -12,7 +12,7 @@ object PoolInfoEndpoints {
 
   val pathPrefix = "pool"
 
-  def endpoints: List[Endpoint[_, _, _, _]] = getPoolInfo :: Nil
+  def endpoints: List[Endpoint[_, _, _, _]] = getPoolInfo :: getPoolsOverview :: Nil
 
   def getPoolInfo: Endpoint[(String, FiniteDuration), HttpError, PoolInfo, Any] =
     baseEndpoint.get
