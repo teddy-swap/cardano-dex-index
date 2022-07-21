@@ -59,9 +59,9 @@ object AnalyticsService {
     def getPoolInfo(poolId: String, period: FiniteDuration): F[Option[PoolInfo]] =
       (for {
         poolDb <- OptionT(poolsRepo.getPoolById(poolId, config.minLiquidityValue))
-        pool   <- OptionT(Pool.fromDb(poolDb).pure)
-        rateX  <- OptionT(ratesRepo.get(pool.x.asset, pool.id))
-        rateY  <- OptionT(ratesRepo.get(pool.y.asset, pool.id))
+        pool = Pool.fromDb(poolDb)
+        rateX <- OptionT(ratesRepo.get(pool.x.asset, pool.id))
+        rateY <- OptionT(ratesRepo.get(pool.y.asset, pool.id))
         xTvl     = pool.x.amount.dropPenny(rateX.decimals) * rateX.rate
         yTvl     = pool.y.amount.dropPenny(rateY.decimals) * rateY.rate
         totalTvl = (xTvl + yTvl).setScale(0, RoundingMode.HALF_UP)
