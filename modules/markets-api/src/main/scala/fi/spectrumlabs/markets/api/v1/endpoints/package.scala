@@ -43,6 +43,6 @@ package object endpoints {
       .map { input =>
         FiniteDuration(Duration(input, TimeUnit.SECONDS).toSeconds, SECONDS)
       }(_.toSeconds)
-      .description("Period in seconds within which statistic is accumulated.")
-      .example(FiniteDuration(Duration(60, TimeUnit.SECONDS).toSeconds, SECONDS))
+      .description("Period in seconds after which statistic is accumulated.")
+      .example(FiniteDuration(Duration(1658379570, TimeUnit.SECONDS).toSeconds, SECONDS))
 }
