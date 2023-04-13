@@ -2,11 +2,10 @@ package fi.spectrumlabs.markets.api.v1.endpoints
 
 import fi.spectrumlabs.core.models.domain.PoolId
 import fi.spectrumlabs.core.network.models.HttpError
-import fi.spectrumlabs.markets.api.models.{PoolInfo, PoolOverview}
+import fi.spectrumlabs.markets.api.models.{PlatformStats, PoolInfo, PoolOverview, PricePoint}
 import sttp.tapir._
 import sttp.tapir.json.circe.jsonBody
-import fi.spectrumlabs.markets.api.v1.endpoints._
-
+import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 import scala.concurrent.duration.FiniteDuration
 
 object PoolInfoEndpoints {
@@ -15,7 +14,7 @@ object PoolInfoEndpoints {
 
   def endpoints: List[Endpoint[_, _, _, _]] = getPoolInfo :: getPoolsOverview :: Nil
 
-  def getPoolInfo: Endpoint[(PoolId, FiniteDuration), HttpError, PoolInfo, Any] =
+  def getPoolInfo: Endpoint[(PoolId, FiniteDuration), HttpError, PoolOverview, Any] =
     baseEndpoint.get
       .in(pathPrefix / "info")
       .in(
@@ -27,7 +26,7 @@ object PoolInfoEndpoints {
           .example(PoolId("93a4e3ab42b052cbe48bee3a6507d3ec06b9555994c1e6815f296108.484f534b59745f414441745f6e6674"))
       )
       .in(after)
-      .out(jsonBody[PoolInfo])
+      .out(jsonBody[PoolOverview])
       .tag(pathPrefix)
       .name("Info by pool id")
       .description("Allow to get info about pool within period")
@@ -40,4 +39,23 @@ object PoolInfoEndpoints {
       .tag(pathPrefix)
       .name("Pools overview")
       .description("Allow to get info about all pool within period")
+
+  def getPoolPriceChart: Endpoint[(PoolId, TimeWindow, Long), HttpError, List[PricePoint], Any] =
+    baseEndpoint.get
+      .in("pool" / path[PoolId] / "chart")
+      .in(timeWindow)
+      .in(minutesResolution)
+      .out(jsonBody[List[PricePoint]])
+      .tag(pathPrefix)
+      .name("Pool price chart")
+      .description("Allow to get pool price chart within period")
+
+  def getPlatformStats: Endpoint[TimeWindow, HttpError, PlatformStats, Any] =
+    baseEndpoint.get
+      .in("platform" / "stats")
+      .in(timeWindow)
+      .out(jsonBody[PlatformStats])
+      .tag(pathPrefix)
+      .name("Platform summary")
+      .description("Allow to get platform summary within period")
 }

@@ -5,12 +5,12 @@ import doobie.implicits._
 import doobie.util.query.Query0
 import fi.spectrumlabs.core.models.db.Pool
 import fi.spectrumlabs.core.models.domain.{PoolId, Pool => DomainPool}
-import fi.spectrumlabs.markets.api.models.PoolVolume
-import fi.spectrumlabs.markets.api.repositories._
-
+import fi.spectrumlabs.markets.api.models.{PoolVolume, PoolVolumeDb}
 import scala.concurrent.duration.FiniteDuration
 import cats.syntax.show._
-import fi.spectrumlabs.markets.api.models.db.PoolDb
+import doobie.util.fragment.Fragment
+import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb}
+import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 
 final class PoolsSql(implicit lh: LogHandler) {
 
@@ -44,7 +44,9 @@ final class PoolsSql(implicit lh: LogHandler) {
          |	x,
          |	reserves_x,
          |	y,
-         |	reserves_y
+         |	reserves_y,
+         |  pool_fee_num,
+         |  pool_fee_den
          |FROM
          |	pool p
          |	LEFT JOIN (
@@ -71,7 +73,7 @@ final class PoolsSql(implicit lh: LogHandler) {
          |	SELECT
          |		sum(actual_quote)
          |	FROM
-         |		executed_swap
+         |		swap
          |	WHERE
          |		pool_nft = ${pool.id}
          |		AND base = ${pool.x.asset.show}
@@ -80,10 +82,35 @@ final class PoolsSql(implicit lh: LogHandler) {
          |		SELECT
          |			sum(actual_quote)
          |		FROM
-         |			executed_swap
+         |			swap
          |		WHERE
          |			pool_nft = ${pool.id}
          |			AND base = ${pool.y.asset.show}
          |			AND timestamp > ${period.toSeconds}) y
        """.stripMargin.query[PoolVolume]
+
+  def getPoolVolumes(tw: TimeWindow): Query0[PoolVolumeDb] =
+    sql"""
+         |SELECT sum(ex.actual_quote), ex.pool_nft, ex.base FROM swap ex
+         |${timeWindowCond(tw, "and", "ex")}
+         |GROUP by ex.pool_nft, ex.base
+       """.stripMargin.query[PoolVolumeDb]
+
+  def getAvgPoolSnapshot(id: PoolId, tw: TimeWindow, resolution: Long): Query0[AvgAssetAmounts] =
+    sql"""
+         |SELECT avg(p.reserves_x), AVG(p.reserves_y), timestamp / ($resolution * 60) AS res
+         |FROM pool p
+         |WHERE pool_id = $id
+         |${timeWindowCond(tw, "and", "p")}
+         |GROUP BY res
+         |ORDER BY res
+         """.stripMargin.query[AvgAssetAmounts]
+
+  private def timeWindowCond(tw: TimeWindow, condKeyword: String, alias: String): Fragment =
+    if (tw.from.nonEmpty || tw.to.nonEmpty)
+      Fragment.const(
+        s"$condKeyword ${tw.from.map(ts => s"$alias.timestamp >= $ts").getOrElse("")} ${if (tw.from.isDefined && tw.to.isDefined) "and"
+        else ""} ${tw.to.map(ts => s"$alias.timestamp <= $ts").getOrElse("")}"
+      )
+    else Fragment.empty
 }

@@ -5,7 +5,7 @@ import derevo.derive
 import doobie.ConnectionIO
 import fi.spectrumlabs.core.models.db.Pool
 import fi.spectrumlabs.core.models.domain.{PoolId, Pool => DomainPool}
-import fi.spectrumlabs.markets.api.models.{PoolOverview, PoolVolume}
+import fi.spectrumlabs.markets.api.models.{PoolVolume, PoolVolumeDb}
 import fi.spectrumlabs.markets.api.repositories.sql.PoolsSql
 import tofu.doobie.LiftConnectionIO
 import tofu.doobie.log.EmbeddableLogHandler
@@ -16,7 +16,8 @@ import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import tofu.syntax.monadic._
 import cats.tagless.syntax.functorK._
-import fi.spectrumlabs.markets.api.models.db.PoolDb
+import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb}
+import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -27,6 +28,10 @@ trait PoolsRepo[D[_]] {
   def getPoolById(poolId: PoolId, minLiquidityValue: Long): D[Option[Pool]]
 
   def getPoolVolume(pool: DomainPool, period: FiniteDuration): D[Option[PoolVolume]]
+
+  def getPoolVolumes(period: TimeWindow): D[List[PoolVolumeDb]]
+
+  def getAvgPoolSnapshot(id: PoolId, tw: TimeWindow, resolution: Long): D[List[AvgAssetAmounts]]
 }
 
 object PoolsRepo {
@@ -42,7 +47,7 @@ object PoolsRepo {
         .mapK(txr.trans)
     }
 
-  final private class Impl(sql: PoolsSql) extends PoolsRepo[ConnectionIO] {
+  final class Impl(sql: PoolsSql) extends PoolsRepo[ConnectionIO] {
 
     def getPools: ConnectionIO[List[PoolDb]] =
       sql.getPools.to[List]
@@ -52,6 +57,12 @@ object PoolsRepo {
 
     def getPoolVolume(pool: DomainPool, period: FiniteDuration): ConnectionIO[Option[PoolVolume]] =
       sql.getPoolVolume(pool, period).option
+
+    def getPoolVolumes(period: TimeWindow): ConnectionIO[List[PoolVolumeDb]] =
+      sql.getPoolVolumes(period).to[List]
+
+    def getAvgPoolSnapshot(id: PoolId, tw: TimeWindow, resolution: Long): ConnectionIO[List[AvgAssetAmounts]] =
+      sql.getAvgPoolSnapshot(id, tw, resolution).to[List]
   }
 
   final private class Tracing[F[_]: FlatMap: Logging] extends PoolsRepo[Mid[F, *]] {
@@ -70,9 +81,23 @@ object PoolsRepo {
         _ <- trace"Pool from db is $r"
       } yield r
 
+    def getPoolVolumes(period: TimeWindow): Mid[F, List[PoolVolumeDb]] =
+      for {
+        _ <- trace"Going to get total pool volumes for period $period"
+        r <- _
+        _ <- trace"Total pool volumes are $r"
+      } yield r
+
     def getPoolVolume(pool: DomainPool, period: FiniteDuration): Mid[F, Option[PoolVolume]] =
       for {
         _ <- trace"Going to get pool volume for $pool with period $period"
+        r <- _
+        _ <- trace"Pool value is $r"
+      } yield r
+
+    def getAvgPoolSnapshot(id: PoolId, tw: TimeWindow, resolution: Long): Mid[F, List[AvgAssetAmounts]] =
+      for {
+        _ <- trace"Going to get avg pool snapshot for $id with period $resolution within $tw"
         r <- _
         _ <- trace"Pool value is $r"
       } yield r

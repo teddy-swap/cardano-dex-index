@@ -7,7 +7,7 @@ import fi.spectrumlabs.core.models.domain.{AssetClass, Pool}
 import fi.spectrumlabs.core.models.rates.ResolvedRate
 import fi.spectrumlabs.rates.resolver.config.ResolverConfig
 import fi.spectrumlabs.rates.resolver.gateways.Network
-import fi.spectrumlabs.rates.resolver.mocks.{MetadataServiceMock, NetworkMock, PoolsServiceMock}
+import fi.spectrumlabs.rates.resolver.mocks.{MetadataServiceMock, NetworkMock, PoolsServiceMock, TokenFetcherMock}
 import fi.spectrumlabs.rates.resolver.models.Models._
 import org.scalacheck._
 import org.specs2.mutable.Specification
