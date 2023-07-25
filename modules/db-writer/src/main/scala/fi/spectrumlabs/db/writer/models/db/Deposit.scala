@@ -1,13 +1,17 @@
 package fi.spectrumlabs.db.writer.models.db
 
 import fi.spectrumlabs.core.models.domain.{Amount, Coin}
-import fi.spectrumlabs.db.writer.classes.ToSchema
+import fi.spectrumlabs.db.writer.classes.{Key, ToSchema}
 import fi.spectrumlabs.db.writer.models.cardano.{DepositAction, DepositOrder, Order}
 import fi.spectrumlabs.db.writer.models.orders.{ExFee, StakePKH, StakePubKeyHash, TxOutRef}
 import cats.syntax.option._
 import fi.spectrumlabs.core.models.domain.AssetClass.syntax._
 import fi.spectrumlabs.db.writer.config.CardanoConfig
+import cats.syntax.show._
+import derevo.circe.magnolia.{decoder, encoder}
+import derevo.derive
 
+@derive(encoder, decoder)
 final case class Deposit(
   poolId: Coin,
   coinX: Coin,
@@ -15,7 +19,7 @@ final case class Deposit(
   coinLq: Coin,
   amountX: Amount,
   amountY: Amount,
-  amountLq: Amount,
+  amountLq: Option[Amount],
   exFee: ExFee,
   rewardPkh: String,
   stakePkh: Option[StakePKH],
@@ -32,6 +36,12 @@ final case class Deposit(
 
 object Deposit {
 
+  val DepositRedisPrefix = "Deposit"
+
+  implicit val key: Key[Deposit] = new Key[Deposit] {
+    override def getKey(in: Deposit): String = DepositRedisPrefix ++ in.rewardPkh
+  }
+
   def streamingSchema(config: CardanoConfig): ToSchema[Order, Option[Deposit]] = {
     case orderAction: DepositOrder
         if config.supportedPools.contains(castFromCardano(orderAction.order.poolId.unCoin.unAssetClass).toCoin.value) =>
@@ -42,7 +52,7 @@ object Deposit {
         castFromCardano(orderAction.order.action.depositLq.unAssetClass).toCoin,
         Amount(orderAction.order.action.depositPair.firstElem.value),
         Amount(orderAction.order.action.depositPair.secondElem.value),
-        Amount(-1), //todo: make optional in schema
+        none, //todo: make optional in schema
         ExFee(orderAction.order.action.depositExFee.unExFee),
         orderAction.order.action.depositRewardPkh.getPubKeyHash,
         orderAction.order.action.depositRewardSPkh.map(spkh =>

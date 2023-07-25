@@ -7,7 +7,9 @@ import tofu.logging.derivation.loggable
 
 @derive(encoder, decoder, loggable)
 final case class HistoryApiQuery(
-  userPkhs: List[String]
+  userPkhs: List[String],
+  refundOnly: Option[Boolean],
+  pendingOnly: Option[Boolean]
 )
 
 object HistoryApiQuery {

@@ -3,11 +3,15 @@ package fi.spectrumlabs.db.writer.models.db
 import cats.syntax.option._
 import fi.spectrumlabs.core.models.domain.AssetClass.syntax.AssetClassOps
 import fi.spectrumlabs.core.models.domain.{Amount, Coin}
-import fi.spectrumlabs.db.writer.classes.ToSchema
+import fi.spectrumlabs.db.writer.classes.{Key, ToSchema}
 import fi.spectrumlabs.db.writer.config.CardanoConfig
 import fi.spectrumlabs.db.writer.models.cardano.{DepositAction, Order, SwapAction, SwapOrder}
 import fi.spectrumlabs.db.writer.models.orders.{ExFee, StakePKH, StakePubKeyHash, TxOutRef}
+import cats.syntax.show._
+import derevo.circe.magnolia.{decoder, encoder}
+import derevo.derive
 
+@derive(encoder, decoder)
 final case class Swap(
   base: Coin,
   quote: Coin,
@@ -17,7 +21,7 @@ final case class Swap(
   rewardPkh: String,
   stakePkh: Option[StakePKH],
   baseAmount: Amount,
-  actualQuote: Amount,
+  actualQuote: Option[Amount],
   minQuoteAmount: Amount,
   orderInputId: TxOutRef,
   userOutputId: Option[TxOutRef],
@@ -30,6 +34,12 @@ final case class Swap(
 ) extends DBOrder
 
 object Swap {
+
+  val SwapRedisPrefix = "Swap"
+
+  implicit val key: Key[Swap] = new Key[Swap] {
+    override def getKey(in: Swap): String = SwapRedisPrefix ++ in.rewardPkh
+  }
 
   def streamingSchema(config: CardanoConfig): ToSchema[Order, Option[Swap]] = {
     case orderAction: SwapOrder
@@ -47,7 +57,7 @@ object Swap {
           StakePKH(StakePubKeyHash(spkh.unStakePubKeyHash.getPubKeyHash))
         ),
         Amount(orderAction.order.action.swapBaseIn),
-        Amount(-1), //todo: make optional in schema
+        none,
         Amount(orderAction.order.action.swapMinQuoteOut),
         castFromCardano(orderAction.fullTxOut.fullTxOutRef),
         none,

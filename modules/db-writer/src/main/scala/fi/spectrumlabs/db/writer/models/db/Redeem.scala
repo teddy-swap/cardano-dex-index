@@ -4,18 +4,22 @@ import cats.implicits.catsSyntaxOptionId
 import cats.syntax.option.none
 import fi.spectrumlabs.core.models.domain.AssetClass.syntax.AssetClassOps
 import fi.spectrumlabs.core.models.domain.{Amount, Coin}
-import fi.spectrumlabs.db.writer.classes.ToSchema
+import fi.spectrumlabs.db.writer.classes.{Key, ToSchema}
 import fi.spectrumlabs.db.writer.config.CardanoConfig
 import fi.spectrumlabs.db.writer.models.cardano.{Order, RedeemAction, RedeemOrder, SwapAction}
 import fi.spectrumlabs.db.writer.models.orders.{ExFee, PublicKeyHash, StakePKH, StakePubKeyHash, TxOutRef}
+import cats.syntax.show._
+import derevo.circe.magnolia.{decoder, encoder}
+import derevo.derive
 
+@derive(encoder, decoder)
 final case class Redeem(
   poolId: Coin,
   coinX: Coin,
   coinY: Coin,
   coinLq: Coin,
-  amountX: Amount,
-  amountY: Amount,
+  amountX: Option[Amount],
+  amountY: Option[Amount],
   amountLq: Amount,
   exFee: ExFee,
   rewardPkh: PublicKeyHash,
@@ -32,6 +36,12 @@ final case class Redeem(
 
 object Redeem {
 
+  val RedeemRedisPrefix = "Redeem"
+
+  implicit val key: Key[Redeem] = new Key[Redeem] {
+    override def getKey(in: Redeem): String = RedeemRedisPrefix ++ in.rewardPkh.getPubKeyHash
+  }
+
   def streamingSchema(config: CardanoConfig): ToSchema[Order, Option[Redeem]] = {
     case orderAction: RedeemOrder
         if config.supportedPools.contains(
@@ -42,8 +52,8 @@ object Redeem {
         castFromCardano(orderAction.order.action.redeemPoolX.unCoin.unAssetClass).toCoin,
         castFromCardano(orderAction.order.action.redeemPoolY.unCoin.unAssetClass).toCoin,
         castFromCardano(orderAction.order.action.redeemLq.unCoin.unAssetClass).toCoin,
-        Amount(-1), //todo: make optional in schema
-        Amount(-1), //todo: make optional in schema
+        none, //todo: make optional in schema
+        none, //todo: make optional in schema
         Amount(orderAction.order.action.redeemLqIn),
         ExFee(orderAction.order.action.redeemExFee.unExFee),
         PublicKeyHash(orderAction.order.action.redeemRewardPkh.getPubKeyHash),

@@ -5,8 +5,13 @@ import io.circe.{Decoder, DecodingFailure, HCursor}
 import cats.syntax.either._
 import derevo.circe.magnolia.decoder
 import derevo.derive
+import fi.spectrumlabs.db.writer.classes.Key
+import cats.syntax.show._
+import fi.spectrumlabs.db.writer.models.db.{Deposit, Redeem, Swap}
 
-sealed trait Order
+sealed trait Order {
+  val fullTxOut: FullTxOut
+}
 
 final case class SwapOrder(fullTxOut: FullTxOut, order: OrderAction[SwapAction], slotNo: Long) extends Order
 object SwapOrder {
@@ -67,6 +72,16 @@ object RedeemOrder {
 }
 
 object Order {
+
+  implicit val key: Key[Order] = new Key[Order] {
+    override def getKey(in: Order): String = {
+      in match {
+        case swap: SwapOrder => Swap.SwapRedisPrefix ++ swap.order.action.swapRewardPkh.getPubKeyHash
+        case deposit: DepositOrder => Deposit.DepositRedisPrefix ++ deposit.order.action.depositRewardPkh.getPubKeyHash
+        case redeem: RedeemOrder => Redeem.RedeemRedisPrefix ++ redeem.order.action.redeemRewardPkh.getPubKeyHash
+      }
+    }
+  }
 
   implicit def commonDecoder: Decoder[Order] = new Decoder[Order] {
 

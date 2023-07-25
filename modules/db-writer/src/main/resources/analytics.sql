@@ -15,7 +15,7 @@ create table if not exists deposit (
     coin_lq Text not null,
     amount_x BIGINT not null,
     amount_y BIGINT not null,
-    amount_lq BIGINT not null,
+    amount_lq BIGINT,
     ex_fee BIGINT not null,
     reward_pkh Text not null,
     stake_pkh Text,
@@ -36,8 +36,8 @@ create table if not exists redeem (
     coin_x Text not null,
     coin_y Text not null,
     coin_lq Text not null,
-    amount_x BIGINT not null,
-    amount_y BIGINT not null,
+    amount_x BIGINT,
+    amount_y BIGINT,
     amount_lq BIGINT not null,
     ex_fee BIGINT not null,
     reward_pkh Text not null,
@@ -62,7 +62,7 @@ create table if not exists swap (
     reward_pkh Text not null,
     stake_pkh Text default null,
     base_amount BIGINT not null,
-    actual_quote BIGINT not null,
+    actual_quote BIGINT,
     min_quote_amount BIGINT not null,
     order_input_id Text not null,
     user_output_id Text,
@@ -89,6 +89,3 @@ create table if not exists pool (
     output_id Text not null,
     timestamp BIGINT not null
 );
-
-create unique index if not exists pool_id on transaction (id);
-create unique index if not exists pool_id_pool_id on pool (pool_id);

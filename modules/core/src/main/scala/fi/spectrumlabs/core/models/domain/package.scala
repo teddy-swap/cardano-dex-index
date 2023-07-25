@@ -30,7 +30,8 @@ package object domain {
   }
 
   @newtype final case class Amount(value: Long) {
-    def dropPenny(decimal: Int): BigDecimal = BigDecimal(s"$value".take(decimal))
+    def dropPenny(decimal: Int): BigDecimal =
+      if (decimal == 0) BigDecimal(value) else BigDecimal(value) / BigDecimal(10).pow(decimal)
   }
 
   object Amount {
@@ -64,5 +65,18 @@ package object domain {
     implicit val get: Get[Fee]           = deriving
     implicit val put: Put[Fee]           = deriving
     implicit val show: Show[Fee]         = deriving
+  }
+
+  @newtype final case class Apr(value: Double)
+
+  object Apr {
+    implicit val encoder: Encoder[Apr]     = deriving
+    implicit val decoder: Decoder[Apr]     = deriving
+    implicit val loggable: Loggable[Apr]   = deriving
+    implicit val get: Get[Apr]             = deriving
+    implicit val put: Put[Apr]             = deriving
+    implicit val show: Show[Apr]           = deriving
+    implicit val schema: Schema[Apr]       = deriving
+    implicit val validator: Validator[Apr] = schema.validator
   }
 }

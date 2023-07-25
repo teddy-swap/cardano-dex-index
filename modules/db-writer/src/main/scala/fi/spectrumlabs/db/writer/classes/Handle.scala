@@ -21,6 +21,8 @@ import mouse.any._
 import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import cats.syntax.traverse._
+import io.circe.parser._
+import fi.spectrumlabs.core.cache.Cache.Plain
 import fi.spectrumlabs.db.writer.classes.OrdersInfo.{
   ExecutedDepositOrderInfo,
   ExecutedRedeemOrderInfo,
@@ -38,6 +40,7 @@ import fi.spectrumlabs.db.writer.models.cardano.{
   TxInput
 }
 import fi.spectrumlabs.db.writer.models.db.{Deposit, Pool, Redeem, Swap}
+import io.circe.{Decoder, Encoder}
 
 /** Keeps both ToSchema from A to B and Persist for B.
   * Contains evidence that A can be mapped into B and B can be persisted.
@@ -92,6 +95,12 @@ object Handle {
     toSchema: ToSchema[A, Option[B]]
   )(implicit logs: Logs[I, F]): I[Handle[A, F]] =
     logs.forService[Handle[A, F]].map(implicit __ => new ImplOption[A, B, F](persist, handleLogName, toSchema))
+
+  def createOptionForExecutedRedis[A, B: Key: Encoder: Decoder, I[_]: Functor, F[_]: Monad](
+    handleLogName: String,
+    toSchema: ToSchema[A, Option[B]]
+  )(implicit logs: Logs[I, F], redis: Plain[F]): I[Handle[A, F]] =
+    logs.forService[Handle[A, F]].map(implicit __ => new RedisDrop[A, B, F](redis, handleLogName, toSchema))
 
   def createExecuted[I[_]: Functor, F[_]: Monad](
     cardanoConfig: CardanoConfig,
@@ -171,13 +180,58 @@ object Handle {
     toSchema: ToSchema[A, Option[B]]
   ) extends Handle[A, F] {
 
-    def handle(in: NonEmptyList[A]): F[Unit] =
-      in.map(toSchema(_)).toList.flatten match {
+    def handle(in: NonEmptyList[A]): F[Unit] = {
+      info"Going to test: ${in.toString()} against schema in ${handleLogName}" >> (in.map(toSchema(_)).toList.flatten match {
         case x :: xs =>
           (NonEmptyList.of(x, xs: _*) |> persist.persist)
             .flatMap(r =>
               info"Finished handle [$handleLogName] process for $r elements. Batch size was ${in.size}. ${in.toString()}"
             )
+        case Nil =>
+          info"Nothing to extract ${in.toString()} [$handleLogName]. Batch contains 0 elements to persist."
+      })
+    }
+  }
+
+  final private class RedisDrop[A, B: Key: Decoder: Encoder, F[_]: Monad: Logging](
+    redis: Plain[F],
+    handleLogName: String,
+    toSchema: ToSchema[A, Option[B]]
+  ) extends Handle[A, F] {
+
+    def handle(in: NonEmptyList[A]): F[Unit] =
+      in.map(toSchema(_)).toList.flatten match {
+        case x :: xs =>
+          (
+            NonEmptyList
+              .of(x, xs: _*)
+              .traverse(elem =>
+                redis.get(implicitly[Key[B]].getKey(elem).getBytes()).flatMap {
+                  case Some(listValuesRaw) =>
+                    parse(new String(listValuesRaw)) match {
+                      case Left(value) =>
+                        info"Trying to parse value from redis by key ${implicitly[Key[B]].getKey(elem)}. Error: ${value.message}"
+                      case Right(value) =>
+                        Decoder[List[B]].decodeJson(value) match {
+                          case Left(value) =>
+                            info"Trying to decode json value from redis by key ${implicitly[Key[B]]
+                              .getKey(elem)}. Error: ${value.message}"
+                          case Right(list) =>
+                            val processedList = list.filter(elemInList => elemInList != elem)
+                            info"Successfully retrieve user orders from redis" >>
+                            redis.set(
+                              implicitly[Key[B]].getKey(elem).getBytes(),
+                              Encoder[List[B]].apply(processedList).toString().getBytes()
+                            )
+                        }
+                    }
+                  case None => info"No user orders is redis. ${implicitly[Key[B]].getKey(elem)}"
+                }
+              )
+              .flatMap(r =>
+                info"Finished handle [$handleLogName] process for $r elements. Batch size was ${in.size}. ${in.toString()}"
+              )
+          )
         case Nil =>
           info"Nothing to extract ${in.toString()} [$handleLogName]. Batch contains 0 elements to persist."
       }
@@ -189,9 +243,11 @@ object Handle {
   ) extends Handle[Confirmed[PoolEvent], F] {
 
     override def handle(in: NonEmptyList[Confirmed[PoolEvent]]): F[Unit] =
+      info"going to test pool: ${in.toString()}" >>
+      info"cardanoConfig.supportedPools: ${cardanoConfig.supportedPools}" >>
       in.map(Pool.toSchemaNew(cardanoConfig).apply)
         .toList
-        .filter(pool => cardanoConfig.supportedPools.contains(pool.id))
+        .filter(pool => cardanoConfig.supportedPools.contains(pool.id.value))
         .traverse { pool =>
           persist.persist(NonEmptyList.one(pool))
         }
