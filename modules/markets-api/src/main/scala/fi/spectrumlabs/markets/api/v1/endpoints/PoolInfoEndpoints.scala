@@ -31,10 +31,9 @@ object PoolInfoEndpoints {
       .name("Info by pool id")
       .description("Allow to get info about pool within period")
 
-  def getPoolsOverview: Endpoint[FiniteDuration, HttpError, List[PoolOverview], Any] =
+  def getPoolsOverview: Endpoint[Unit, HttpError, List[PoolOverview], Any] =
     baseEndpoint.get
       .in("pools" / "overview")
-      .in(after)
       .out(jsonBody[List[PoolOverview]])
       .tag(pathPrefix)
       .name("Pools overview")
@@ -50,10 +49,9 @@ object PoolInfoEndpoints {
       .name("Pool price chart")
       .description("Allow to get pool price chart within period")
 
-  def getPlatformStats: Endpoint[TimeWindow, HttpError, PlatformStats, Any] =
+  def getPlatformStats: Endpoint[Unit, HttpError, PlatformStats, Any] =
     baseEndpoint.get
       .in("platform" / "stats")
-      .in(timeWindow)
       .out(jsonBody[PlatformStats])
       .tag(pathPrefix)
       .name("Platform summary")

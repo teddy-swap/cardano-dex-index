@@ -29,14 +29,10 @@ final class PoolsSql(implicit lh: LogHandler) {
         |FROM
         |	pool p
         |	INNER JOIN (
-        |		SELECT
-        |			pool_id AS pid,
-        |			max(timestamp) AS ts
-        |		FROM
-        |			pool
-        |		GROUP BY
-        |			pool_id) pLatest ON p.pool_id = pLatest.pid
-        |	AND p.timestamp = pLatest.ts
+        |		SELECT pool_id AS pid, max(timestamp) AS ts
+        |		FROM pool
+        |		GROUP BY pool_id
+        |	) pLatest ON p.pool_id = pLatest.pid AND p.timestamp = pLatest.ts
        """.stripMargin.query[PoolDb]
 
   def getPool(poolId: PoolId, minLiquidityValue: Long): Query0[Pool] =
@@ -67,28 +63,15 @@ final class PoolsSql(implicit lh: LogHandler) {
          |	AND pool_id = $poolId;
        """.stripMargin.query[Pool]
 
-  def getPoolVolume(pool: DomainPool, period: FiniteDuration): Query0[PoolVolume] =
+  def getPoolVolume(pool: DomainPool, from: Long): Query0[PoolVolume] =
     sql"""
-         |SELECT
-         |	*
-         |FROM (
-         |	SELECT
-         |		sum(actual_quote)
-         |	FROM
-         |		swap
-         |	WHERE
-         |		pool_nft = ${pool.id}
-         |		AND base = ${pool.x.asset.show}
-         |		AND creation_timestamp > ${period.toSeconds}) x
-         |	CROSS JOIN (
-         |		SELECT
-         |			sum(actual_quote)
-         |		FROM
-         |			swap
-         |		WHERE
-         |			pool_nft = ${pool.id}
-         |			AND base = ${pool.y.asset.show}
-         |			AND creation_timestamp > ${period.toSeconds}) y
+         |select
+         |	p.pool_id,
+         |	cast(sum(CASE WHEN (s.base = p.y) THEN s.actual_quote ELSE 0 END) AS BIGINT) AS tx,
+         |	cast(sum(CASE WHEN (s.base = p.x) THEN s.actual_quote ELSE 0 END) AS BIGINT) AS ty
+         |from swap s left join pool p on (p.output_id=s.pool_input_id)
+         |where p.pool_id is not null and p.pool_id=${pool.id} and s.actual_quote is not null and creation_timestamp > $from
+         |group by p.pool_id;
        """.stripMargin.query[PoolVolume]
 
   def getPoolVolumes(tw: TimeWindow): Query0[PoolVolumeDbNew] =
@@ -98,7 +81,12 @@ final class PoolsSql(implicit lh: LogHandler) {
          |	cast(sum(CASE WHEN (s.base = p.y) THEN s.actual_quote ELSE 0 END) AS BIGINT) AS tx,
          |	cast(sum(CASE WHEN (s.base = p.x) THEN s.actual_quote ELSE 0 END) AS BIGINT) AS ty
          |from swap s left join pool p on (p.output_id=s.pool_input_id)
-         |where p.pool_id is not null and s.actual_quote != -1 ${timeWindowCond(tw, "and", "ex")}
+         |where p.pool_id is not null and s.actual_quote is not null ${timeWindowCond(
+      tw,
+      "and",
+      "s",
+      "creation_timestamp"
+    )}
          |group by p.pool_id;
        """.stripMargin.query[PoolVolumeDbNew]
 
@@ -107,7 +95,7 @@ final class PoolsSql(implicit lh: LogHandler) {
          |SELECT avg(p.reserves_x), AVG(p.reserves_y), timestamp / ($resolution * 60) AS res
          |FROM pool p
          |WHERE pool_id = $id
-         |${timeWindowCond(tw, "and", "p")}
+         |${timeWindowCond(tw, "and", "p", "timestamp")}
          |GROUP BY res
          |ORDER BY res
          """.stripMargin.query[AvgAssetAmounts]
@@ -120,8 +108,8 @@ final class PoolsSql(implicit lh: LogHandler) {
        """.stripMargin.query
 
   def getPoolFees(pool: domain.Pool, window: TimeWindow, poolFee: PoolFee): Query0[PoolFeeSnapshot] = {
-    def from = window.from.map(s => Fragment.const(s"execution_timestamp > ${s} and ")).getOrElse(Fragment.empty)
-    def to = window.to.map(s => Fragment.const(s"execution_timestamp <= ${s}")).getOrElse(Fragment.empty)
+    def from = window.from.map(s => Fragment.const(s"execution_timestamp > $s and ")).getOrElse(Fragment.empty)
+    def to   = window.to.map(s => Fragment.const(s"execution_timestamp <= $s")).getOrElse(Fragment.empty)
 
     sql"""
          |SELECT
@@ -132,11 +120,11 @@ final class PoolsSql(implicit lh: LogHandler) {
        """.stripMargin.query[PoolFeeSnapshot]
   }
 
-  private def timeWindowCond(tw: TimeWindow, condKeyword: String, alias: String): Fragment =
+  private def timeWindowCond(tw: TimeWindow, condKeyword: String, alias: String, tsKey: String): Fragment =
     if (tw.from.nonEmpty || tw.to.nonEmpty)
       Fragment.const(
-        s"$condKeyword ${tw.from.map(ts => s"$alias.timestamp >= $ts").getOrElse("")} ${if (tw.from.isDefined && tw.to.isDefined) "and"
-        else ""} ${tw.to.map(ts => s"$alias.timestamp <= $ts").getOrElse("")}"
+        s"$condKeyword ${tw.from.map(ts => s"$alias.$tsKey >= $ts").getOrElse("")} ${if (tw.from.isDefined && tw.to.isDefined) "and"
+        else ""} ${tw.to.map(ts => s"$alias.$tsKey <= $ts").getOrElse("")}"
       )
     else Fragment.empty
 }
