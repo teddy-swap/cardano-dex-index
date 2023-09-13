@@ -10,7 +10,7 @@ import derevo.derive
 import fi.spectrumlabs.core.models.domain.{Amount, AssetAmount, Pool, PoolId}
 import fi.spectrumlabs.markets.api.configs.MarketsApiConfig
 import fi.spectrumlabs.markets.api.models.db.PoolDb
-import fi.spectrumlabs.markets.api.models.{PlatformStats, PoolOverview, PricePoint, RealPrice}
+import fi.spectrumlabs.markets.api.models.{PlatformStats, PoolList, PoolOverview, PoolState, PricePoint, RealPrice}
 import fi.spectrumlabs.markets.api.repositories.repos.{PoolsRepo, RatesRepo}
 import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 import tofu.higherKind.Mid
@@ -19,8 +19,8 @@ import tofu.logging.{Logging, Logs}
 import tofu.syntax.logging._
 import tofu.syntax.monadic._
 import tofu.time.Clock
-
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.math.BigDecimal.RoundingMode
 
@@ -35,13 +35,18 @@ trait AnalyticsService[F[_]] {
   def getPlatformStats: F[PlatformStats]
 
   def updatePoolsOverview: F[List[PoolOverview]]
+
+  def getPoolList: F[PoolList]
+
+  def getPoolStateByDate(poolId: PoolId, date: Long): F[Option[PoolState]]
 }
 
 object AnalyticsService {
 
   private val MillisInYear: FiniteDuration = 365.days
 
-  def create[I[_]: Functor, F[_]: Monad: Parallel: Clock](config: MarketsApiConfig, cache: Ref[F, List[PoolOverview]])(implicit
+  def create[I[_]: Functor, F[_]: Monad: Parallel: Clock](config: MarketsApiConfig, cache: Ref[F, List[PoolOverview]])(
+    implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F],
     ammStatsMath: AmmStatsMath[F],
@@ -49,11 +54,31 @@ object AnalyticsService {
   ): I[AnalyticsService[F]] =
     logs.forService[AnalyticsService[F]].map(implicit __ => new Tracing[F] attach new Impl[F](config, cache))
 
-  final private class Impl[F[_]: Monad: Parallel: Clock](config: MarketsApiConfig, cache: Ref[F, List[PoolOverview]])(implicit
+  final private class Impl[F[_]: Monad: Parallel: Clock](config: MarketsApiConfig, cache: Ref[F, List[PoolOverview]])(
+    implicit
     ratesRepo: RatesRepo[F],
     poolsRepo: PoolsRepo[F],
     ammStatsMath: AmmStatsMath[F]
   ) extends AnalyticsService[F] {
+
+    def getPoolStateByDate(poolId: PoolId, date: Long): F[Option[PoolState]] =
+      (for {
+        poolDb <- OptionT(poolsRepo.getPoolStateByDate(poolId, date))
+        pool = Pool.fromDb(poolDb)
+        totalTvl <- OptionT(resolvePoolTvl(pool))
+      } yield PoolState(pool.id, totalTvl)).value
+
+    private def resolvePoolTvl(pool: Pool): F[Option[BigDecimal]] =
+      (for {
+        rateX <- OptionT(ratesRepo.get(pool.x.asset))
+        rateY <- OptionT(ratesRepo.get(pool.y.asset))
+        xTvl     = pool.x.amount.withDecimal(rateX.decimals) * rateX.rate
+        yTvl     = pool.y.amount.withDecimal(rateY.decimals) * rateY.rate
+        totalTvl = (xTvl + yTvl).setScale(6, RoundingMode.HALF_UP)
+      } yield totalTvl).value
+
+    def getPoolList: F[PoolList] =
+      poolsRepo.getPoolList.map(pools => PoolList(pools, pools.size))
 
     def updatePoolsOverview: F[List[PoolOverview]] = Clock[F].realTime(TimeUnit.SECONDS) >>= { now =>
       poolsRepo.getPools.flatMap(
@@ -149,22 +174,39 @@ object AnalyticsService {
       (for {
         amounts <- OptionT.liftF(poolsRepo.getAvgPoolSnapshot(poolId, window, resolution))
         pool    <- OptionT(poolsRepo.getPoolById(poolId, config.minLiquidityValue))
-        xMeta <- OptionT.liftF(ratesRepo.get(pool.x))
-        yMeta <- OptionT.liftF(ratesRepo.get(pool.y))
-        points = amounts.map { amount =>
-          val price = RealPrice.calculate(amount.amountX, xMeta.map(_.decimals), amount.amountY, yMeta.map(_.decimals))
-          PricePoint(amount.avgTimestamp, price.setScale(RealPrice.defaultScale))
-        }.sortBy(_.timestamp)
+        xMeta   <- OptionT.liftF(ratesRepo.get(pool.x))
+        yMeta   <- OptionT.liftF(ratesRepo.get(pool.y))
+        points = amounts
+          .map { amount =>
+            val price =
+              RealPrice.calculate(amount.amountX, xMeta.map(_.decimals), amount.amountY, yMeta.map(_.decimals))
+            PricePoint(amount.avgTimestamp, price.setScale(RealPrice.defaultScale))
+          }
+          .sortBy(_.timestamp)
       } yield points).value.map(_.toList.flatten)
   }
 
   final private class Tracing[F[_]: Monad: Logging] extends AnalyticsService[Mid[F, *]] {
+
+    def getPoolStateByDate(poolId: PoolId, date: Long): Mid[F, Option[PoolState]] =
+      for {
+        _ <- trace"Going to get $poolId pool state by $date"
+        r <- _
+        _ <- trace"Pool state is $r"
+      } yield r
 
     def getPoolsOverview: Mid[F, List[PoolOverview]] =
       for {
         _ <- trace"Going to get pools overview"
         r <- _
         _ <- trace"Pools overview is $r"
+      } yield r
+
+    def getPoolList: Mid[F, PoolList] =
+      for {
+        _ <- trace"Going to get pools list"
+        r <- _
+        _ <- trace"Pools list is $r"
       } yield r
 
     def getPoolInfo(poolId: PoolId, from: Long): Mid[F, Option[PoolOverview]] =

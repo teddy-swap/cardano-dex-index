@@ -20,7 +20,8 @@ final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer: AdaptThrowabl
 
   private val interpreter = Http4sServerInterpreter(opts)
 
-  def routes = getPoolInfoR <+> getPoolsOverviewR <+> getPoolPriceChartR <+> getPlatformStatsR
+  def routes =
+    getPoolStateByDateR <+> getPoolListR <+> getPoolInfoR <+> getPoolsOverviewR <+> getPoolPriceChartR <+> getPlatformStatsR
 
   def getPoolInfoR: HttpRoutes[F] = interpreter.toRoutes(getPoolInfo) { case (id, period) =>
     service.getPoolInfo(id, period.toSeconds).orNotFound(s"PoolInfo{id=$id}")
@@ -34,6 +35,14 @@ final class AnalyticsRoutes[F[_]: Concurrent: ContextShift: Timer: AdaptThrowabl
 
   def getPlatformStatsR = interpreter.toRoutes(getPlatformStats) { _ =>
     service.getPlatformStats.adaptThrowable.value
+  }
+
+  def getPoolListR = interpreter.toRoutes(getPoolList) { _ =>
+    service.getPoolList.adaptThrowable.value
+  }
+
+  def getPoolStateByDateR = interpreter.toRoutes(getPoolStateByDate) { case (id, date) =>
+    service.getPoolStateByDate(id, date).orNotFound(s"PoolState{id=$id, date=$date}")
   }
 }
 

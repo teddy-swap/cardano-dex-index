@@ -1,20 +1,49 @@
 package fi.spectrumlabs.markets.api.repositories.sql
 
-import doobie.util.log.LogHandler
+import cats.syntax.show._
 import doobie.implicits._
+import doobie.util.fragment.Fragment
+import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import fi.spectrumlabs.core.models.db.Pool
-import fi.spectrumlabs.core.models.domain.{PoolFee, PoolId, Pool => DomainPool}
-import fi.spectrumlabs.markets.api.models.{PoolVolume, PoolVolumeDb, PoolVolumeDbNew}
-
-import scala.concurrent.duration.FiniteDuration
-import cats.syntax.show._
-import doobie.util.fragment.Fragment
 import fi.spectrumlabs.core.models.domain
+import fi.spectrumlabs.core.models.domain.{PoolFee, PoolId, Pool => DomainPool}
 import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb, PoolFeeSnapshot}
+import fi.spectrumlabs.markets.api.models.{PoolVolume, PoolVolumeDbNew}
 import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 
 final class PoolsSql(implicit lh: LogHandler) {
+
+  def getPoolList: Query0[PoolId] =
+    sql"""SELECT DISTINCT pool_id FROM pool""".stripMargin.query[PoolId]
+
+  def getPoolStateByDate(poolId: PoolId, date: Long): Query0[Pool] =
+    sql"""
+         |SELECT
+         |	pool_id,
+         |	x,
+         |	reserves_x,
+         |	y,
+         |	reserves_y,
+         |  pool_fee_num,
+         |  pool_fee_den
+         |FROM
+         |	pool p
+         |	LEFT JOIN (
+         |		SELECT
+         |			pool_id AS pid,
+         |			max(id) AS id
+         |		FROM
+         |			pool
+         |   WHERE timestamp <= $date
+         |		GROUP BY
+         |			pool_id
+         |   ) AS plast ON plast.pid = p.pool_id
+         |	AND plast.id = p.id
+         |WHERE
+         |plast.id = p.id
+         |AND pool_id = $poolId;
+       """.stripMargin.query[Pool]
 
   def getPools: Query0[PoolDb] =
     sql"""
