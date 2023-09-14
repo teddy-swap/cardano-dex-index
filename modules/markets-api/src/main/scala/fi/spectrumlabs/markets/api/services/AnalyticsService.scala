@@ -20,7 +20,7 @@ import tofu.syntax.logging._
 import tofu.syntax.monadic._
 import tofu.time.Clock
 import java.util.concurrent.TimeUnit
-
+import fi.spectrumlabs.core.{AdaAssetClass, AdaDecimal}
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.math.BigDecimal.RoundingMode
 
@@ -64,18 +64,9 @@ object AnalyticsService {
     def getPoolStateByDate(poolId: PoolId, date: Long): F[Option[PoolState]] =
       (for {
         poolDb <- OptionT(poolsRepo.getPoolStateByDate(poolId, date))
-        pool = Pool.fromDb(poolDb)
-        totalTvl <- OptionT(resolvePoolTvl(pool))
-      } yield PoolState(pool.id, totalTvl)).value
-
-    private def resolvePoolTvl(pool: Pool): F[Option[BigDecimal]] =
-      (for {
-        rateX <- OptionT(ratesRepo.get(pool.x.asset))
-        rateY <- OptionT(ratesRepo.get(pool.y.asset))
-        xTvl     = pool.x.amount.withDecimal(rateX.decimals) * rateX.rate
-        yTvl     = pool.y.amount.withDecimal(rateY.decimals) * rateY.rate
-        totalTvl = (xTvl + yTvl).setScale(6, RoundingMode.HALF_UP)
-      } yield totalTvl).value
+        pool   <- OptionT.pure(Pool.fromDb(poolDb)).filter(_.contains(AdaAssetClass))
+        adaAmount = if (pool.x.asset == AdaAssetClass) pool.x.amount else pool.y.amount
+      } yield PoolState(pool.id, (adaAmount.withDecimal(AdaDecimal) * 2).setScale(6, RoundingMode.HALF_UP))).value
 
     def getPoolList: F[PoolList] =
       poolsRepo.getPoolList.map(pools => PoolList(pools, pools.size))
