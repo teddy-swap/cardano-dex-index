@@ -2,7 +2,7 @@ package fi.spectrumlabs.markets.api.v1.endpoints
 
 import fi.spectrumlabs.core.models.domain.PoolId
 import fi.spectrumlabs.core.network.models.HttpError
-import fi.spectrumlabs.markets.api.models.{PlatformStats, PoolList, PoolOverview, PoolState, PricePoint}
+import fi.spectrumlabs.markets.api.models.{PlatformStats, PoolList, PoolOverview, PoolOverviewNew, PoolState, PricePoint}
 import sttp.tapir._
 import sttp.tapir.json.circe.jsonBody
 import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow

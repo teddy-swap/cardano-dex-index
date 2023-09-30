@@ -8,7 +8,7 @@ import doobie.util.query.Query0
 import fi.spectrumlabs.core.models.db.Pool
 import fi.spectrumlabs.core.models.domain
 import fi.spectrumlabs.core.models.domain.{PoolFee, PoolId, Pool => DomainPool}
-import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb, PoolFeeSnapshot}
+import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb, PoolDbNew, PoolFeeSnapshot}
 import fi.spectrumlabs.markets.api.models.{PoolVolume, PoolVolumeDbNew}
 import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 
@@ -46,7 +46,28 @@ final class PoolsSql(implicit lh: LogHandler) {
          |  AND p.timestamp <= $date;
        """.stripMargin.query[Pool]
 
-  def getPools: Query0[PoolDb] =
+  def getPools: Query0[PoolDbNew] =
+    sql"""
+         |SELECT
+         |	pool_id,
+         |	x,
+         |	reserves_x,
+         |	y,
+         |	reserves_y,
+         |	pool_fee_num,
+         |	pool_fee_den,
+         |  lq,
+         |  liquidity
+         |FROM
+         |	pool p
+         |	INNER JOIN (
+         |		SELECT pool_id AS pid, max(id) AS id
+         |		FROM pool
+         |		GROUP BY pool_id
+         |	) pLatest ON p.pool_id = pLatest.pid AND p.id = pLatest.id
+       """.stripMargin.query[PoolDbNew]
+
+  def getPoolsOld: Query0[PoolDb] =
     sql"""
          |SELECT
          |	pool_id,

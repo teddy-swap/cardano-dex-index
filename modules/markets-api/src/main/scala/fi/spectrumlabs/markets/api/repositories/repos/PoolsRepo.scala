@@ -17,14 +17,16 @@ import tofu.syntax.logging._
 import tofu.syntax.monadic._
 import cats.tagless.syntax.functorK._
 import fi.spectrumlabs.core.models.domain
-import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb, PoolFeeSnapshot}
+import fi.spectrumlabs.markets.api.models.db.{AvgAssetAmounts, PoolDb, PoolDbNew, PoolFeeSnapshot}
 import fi.spectrumlabs.markets.api.v1.endpoints.models.TimeWindow
 
 import scala.concurrent.duration.FiniteDuration
 
 @derive(representableK)
 trait PoolsRepo[D[_]] {
-  def getPools: D[List[PoolDb]]
+  def getPools: D[List[PoolDbNew]]
+
+  def getPoolsOld: D[List[PoolDb]]
 
   def getPoolById(poolId: PoolId, minLiquidityValue: Long): D[Option[Pool]]
 
@@ -64,8 +66,11 @@ object PoolsRepo {
     def getPoolStateByDate(poolId: PoolId, date: Long): ConnectionIO[Option[Pool]] =
       sql.getPoolStateByDate(poolId, date).option
 
-    def getPools: ConnectionIO[List[PoolDb]] =
+    def getPools: ConnectionIO[List[PoolDbNew]] =
       sql.getPools.to[List]
+
+    def getPoolsOld: ConnectionIO[List[PoolDb]] =
+      sql.getPoolsOld.to[List]
 
     def getPoolById(poolId: PoolId, minLiquidityValue: Long): ConnectionIO[Option[Pool]] =
       sql.getPool(poolId, minLiquidityValue).option
@@ -95,7 +100,7 @@ object PoolsRepo {
         _ <- trace"Pool state from db is $r"
       } yield r
 
-    def getPools: Mid[F, List[PoolDb]] =
+    def getPools: Mid[F, List[PoolDbNew]] =
       for {
         _ <- trace"Going to get all pools"
         r <- _
@@ -149,6 +154,13 @@ object PoolsRepo {
         _ <- trace"fees(id: ${pool.id})"
         r <- _
         _ <- trace"fees(id: ${pool.id}) -> $r"
+      } yield r
+
+    def getPoolsOld: Mid[F, List[PoolDb]] =
+      for {
+        _ <- trace"getPoolsOld()"
+        r <- _
+        _ <- trace"getPoolsOld() -> $r"
       } yield r
   }
 }
