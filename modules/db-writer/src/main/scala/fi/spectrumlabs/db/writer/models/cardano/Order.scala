@@ -38,36 +38,41 @@ object SwapOrder {
 final case class DepositOrder(fullTxOut: FullTxOut, order: OrderAction[DepositAction], slotNo: Long) extends Order
 
 object DepositOrder {
-
-  implicit def decoder: Decoder[DepositOrder] = new Decoder[DepositOrder] {
-
-    override def apply(c: HCursor): Result[DepositOrder] =
-      c.downField("slotNo").as[Long].flatMap { slotNo =>
-        c.downField("event").values.toRight(DecodingFailure("Order should contains fields", List.empty)).flatMap { orderFields =>
-          for {
-            fullTxOut <- orderFields.head.as[FullTxOut]
-            value <- if (orderFields.size == 2) orderFields.last.as[OrderAction[DepositAction]]
-            else DecodingFailure("Deposit pair doesn't contain 2 elems", List.empty).asLeft
-          } yield DepositOrder(fullTxOut, value, slotNo)
+  implicit val decoder: Decoder[DepositOrder] = new Decoder[DepositOrder] {
+    override def apply(c: HCursor): Result[DepositOrder] = {
+      c.values.toRight(DecodingFailure("Expected array", c.history)).flatMap { values =>
+        values.toList match {
+          case List(orderJson, slotNoJson) =>
+            for {
+              slotNo <- slotNoJson.as[Long]
+              orderArray <- orderJson.asArray.toRight(DecodingFailure("Expected inner array", c.history))
+              List(fullTxOutJson, orderActionJson) = orderArray.toList
+              fullTxOut <- fullTxOutJson.as[FullTxOut]
+              orderAction <- orderActionJson.as[OrderAction[DepositAction]]
+            } yield DepositOrder(fullTxOut, orderAction, slotNo)
+          case _ => Left(DecodingFailure("Expected array of two elements", c.history))
         }
       }
+    }
   }
 }
 
 final case class RedeemOrder(fullTxOut: FullTxOut, order: OrderAction[RedeemAction], slotNo: Long) extends Order
 
 object RedeemOrder {
-
-  implicit def decoder: Decoder[RedeemOrder] = new Decoder[RedeemOrder] {
-
+  implicit val decoder: Decoder[RedeemOrder] = new Decoder[RedeemOrder] {
     override def apply(c: HCursor): Result[RedeemOrder] = {
-      c.downField("slotNo").as[Long].flatMap { slotNo =>
-        c.downField("event").values.toRight(DecodingFailure("Order should contains fields", List.empty)).flatMap { orderFields =>
-          for {
-            fullTxOut <- orderFields.head.as[FullTxOut]
-            value <- if (orderFields.size == 2) orderFields.last.as[OrderAction[RedeemAction]]
-            else DecodingFailure("Deposit pair doesn't contain 2 elems", List.empty).asLeft
-          } yield RedeemOrder(fullTxOut, value, slotNo)
+      c.values.toRight(DecodingFailure("Expected array", c.history)).flatMap { values =>
+        values.toList match {
+          case List(orderJson, slotNoJson) =>
+            for {
+              slotNo <- slotNoJson.as[Long]
+              orderArray <- orderJson.asArray.toRight(DecodingFailure("Expected inner array", c.history))
+              List(fullTxOutJson, orderActionJson) = orderArray.toList
+              fullTxOut <- fullTxOutJson.as[FullTxOut]
+              orderAction <- orderActionJson.as[OrderAction[RedeemAction]]
+            } yield RedeemOrder(fullTxOut, orderAction, slotNo)
+          case _ => Left(DecodingFailure("Expected array of two elements", c.history))
         }
       }
     }
