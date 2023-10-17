@@ -23,6 +23,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= List(CompilerPlugins.betterMonadicFor, CompilerPlugins.kindProjector),
   assembly / test := {},
   assembly / assemblyMergeStrategy  := {
+    case "base.conf"                                               => MergeStrategy.concat
     case "logback.xml"                                             => MergeStrategy.first
     case "module-info.class"                                       => MergeStrategy.discard
     case other if other.contains("scala/annotation/nowarn.class")  => MergeStrategy.first
@@ -115,7 +116,15 @@ lazy val api = project
     Libraries.scalaCheck
   ) ++ Libraries.testing)
   .dependsOn(core, ratesResolver, dbWriter)
-  .settings(assembly / assemblyJarName := "markets-api.jar")
+  .settings(
+    assembly / assemblyMergeStrategy := {
+      case PathList("logback.xml")         => MergeStrategy.first
+      case x =>
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+    assembly / assemblyJarName := "markets-api.jar"
+  )
   .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin)
 
 lazy val ratesResolver = project

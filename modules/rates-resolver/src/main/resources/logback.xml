@@ -13,7 +13,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/root/cardano-dex-index/logs/rates-resolver.log</file>
+        <file>/tmp/rates-resolver.log</file>
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="tofu.logging.logback.ConsoleContextLayout">
                 <pattern>[%date{yyyy-MM-dd HH:mm:ss}] %-5level [%.15thread]%X{alias}[%-25logger{15}] - %msg%n</pattern>
@@ -21,7 +21,7 @@
         </encoder>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/root/cardano-dex-index/logs/rates-resolver.%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>/tmp/rates-resolver.%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">

@@ -44,12 +44,20 @@ object Output {
         Addr(output.fullTxOutAddress.addressCredential.toString),
         Bytea(""), //todo: fill with orig content. Will be added in next iteration
         none,
-        output.fullTxOutValue.asJson,
+        sanitizeJson(output.fullTxOutValue.asJson),
         none,
         none,
         none,
         none
       )
     }
+  }
+
+  def sanitizeJson(json: Json): Json = {
+    json.mapString(removeNullCharacter).mapArray(_.map(sanitizeJson)).mapObject(_.mapValues(sanitizeJson))
+  }
+
+  def removeNullCharacter(str: String): String = {
+    str.replace("\u0000", "") // Replaces the null character with an empty string
   }
 }

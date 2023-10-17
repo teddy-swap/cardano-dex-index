@@ -15,22 +15,25 @@ sealed trait Order {
 
 final case class SwapOrder(fullTxOut: FullTxOut, order: OrderAction[SwapAction], slotNo: Long) extends Order
 object SwapOrder {
-
-  implicit def decoder: Decoder[SwapOrder] = new Decoder[SwapOrder] {
-
+  implicit val decoder: Decoder[SwapOrder] = new Decoder[SwapOrder] {
     override def apply(c: HCursor): Result[SwapOrder] = {
-      c.downField("slotNo").as[Long].flatMap { slotNo =>
-        c.downField("event").values.toRight(DecodingFailure("Order should contains fields", List.empty)).flatMap { orderFields =>
-          for {
-            fullTxOut <- orderFields.head.as[FullTxOut]
-            value <- if (orderFields.size == 2) orderFields.last.as[OrderAction[SwapAction]]
-            else DecodingFailure("Deposit pair doesn't contain 2 elems", List.empty).asLeft
-          } yield SwapOrder(fullTxOut, value, slotNo)
+      c.values.toRight(DecodingFailure("Expected array", c.history)).flatMap { values =>
+        values.toList match {
+          case List(orderJson, slotNoJson) =>
+            for {
+              slotNo <- slotNoJson.as[Long]
+              orderArray <- orderJson.asArray.toRight(DecodingFailure("Expected inner array", c.history))
+              List(fullTxOutJson, orderActionJson) = orderArray.toList
+              fullTxOut <- fullTxOutJson.as[FullTxOut]
+              orderAction <- orderActionJson.as[OrderAction[SwapAction]]
+            } yield SwapOrder(fullTxOut, orderAction, slotNo)
+          case _ => Left(DecodingFailure("Expected array of two elements", c.history))
         }
       }
     }
   }
 }
+
 
 final case class DepositOrder(fullTxOut: FullTxOut, order: OrderAction[DepositAction], slotNo: Long) extends Order
 
