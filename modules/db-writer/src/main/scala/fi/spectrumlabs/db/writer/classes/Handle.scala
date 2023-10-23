@@ -400,8 +400,7 @@ object Handle {
         case tx: AppliedTransaction if tx.txOutputs.exists { out =>
               out.fullTxOutAddress.addressCredential match {
                 case ScriptAddressCredential(contents, _) =>
-                  contents == "6b9c456aa650cb808a9ab54326e039d5235ed69f069c9664a8fe5b69" ||
-                    contents == "e628bfd68c07a7a38fcd7d8df650812a9dfdbee54b1ed4c25c87ffbf"
+                  contents == "28bbd1f7aebb3bc59e13597f333aeefb8f5ab78eda962de1d605b388"
                 case _ => false
               }
             } =>
