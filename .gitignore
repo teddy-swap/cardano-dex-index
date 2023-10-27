@@ -17,3 +17,9 @@ project/metals.sbt
 /.bsp/
 
 env.conf
+
+kafka
+redis
+redis2
+postgres
+.vscode

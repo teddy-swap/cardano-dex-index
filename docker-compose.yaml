@@ -1,30 +1,238 @@
 version: '3'
-
+name: cardano-dex-index
+networks:
+  index_network:
+    driver: bridge
+volumes:
+  redpanda-1:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./kafka/kafkaV21/data
+  redpanda-2:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./kafka/kafkaV22/data
+  redpanda-3:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./kafka/kafkaV23/data
+  redis-1:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./redis
+  redis-2:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./redis2
+  postgres:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./postgres
 services:
-  redisV2:
+  redpanda-1:
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://redpanda-1:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda-1:9092,external://redpanda-1:19092
+      - --pandaproxy-addr internal://redpanda-1:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr internal://redpanda-1:8082,external://redpanda-1:18082
+      - --schema-registry-addr internal://redpanda-1:8081,external://0.0.0.0:18081
+      - --rpc-addr redpanda-1:33145
+      - --advertise-rpc-addr redpanda-1:33145
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '1'
+    image: docker.redpanda.com/redpandadata/redpanda:v23.2.12
+    container_name: redpanda-1
+    volumes:
+      - redpanda-1:/var/lib/redpanda/data
+    networks:
+      - index_network
+    ports:
+      - 18081:18081
+      - 18082:18082
+      - 19092:19092
+      - 19644:9644
+  redpanda-2:
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://redpanda-2:9092,external://0.0.0.0:29092
+      - --advertise-kafka-addr internal://redpanda-2:9092,external://redpanda-2:29092
+      - --pandaproxy-addr internal://redpanda-2:8082,external://0.0.0.0:28082
+      - --advertise-pandaproxy-addr internal://redpanda-2:8082,external://redpanda-2:28082
+      - --schema-registry-addr internal://redpanda-2:8081,external://0.0.0.0:28081
+      - --rpc-addr redpanda-2:33145
+      - --advertise-rpc-addr redpanda-2:33145
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '2'
+      - --seeds redpanda-1:33145
+    image: docker.redpanda.com/redpandadata/redpanda:v23.2.12
+    container_name: redpanda-2
+    volumes:
+      - redpanda-2:/var/lib/redpanda/data
+    networks:
+      - index_network
+    ports:
+      - 28081:28081
+      - 28082:28082
+      - 29092:29092
+      - 29644:9644
+    depends_on:
+      - redpanda-1
+  redpanda-3:
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://redpanda-3:9092,external://0.0.0.0:39092
+      - --advertise-kafka-addr internal://redpanda-3:9092,external://redpanda-3:39092
+      - --pandaproxy-addr internal://redpanda-3:8082,external://0.0.0.0:38082
+      - --advertise-pandaproxy-addr internal://redpanda-3:8082,external://redpanda-3:38082
+      - --schema-registry-addr internal://redpanda-3:8081,external://0.0.0.0:38081
+      - --rpc-addr redpanda-3:33145
+      - --advertise-rpc-addr redpanda-3:33145
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '3'
+      - --seeds redpanda-1:33145
+    image: docker.redpanda.com/redpandadata/redpanda:v23.2.12
+    container_name: redpanda-3
+    volumes:
+      - redpanda-3:/var/lib/redpanda/data
+    networks:
+      - index_network
+    ports:
+      - 38081:38081
+      - 38082:38082
+      - 39092:39092
+      - 39644:9644
+    depends_on:
+      - redpanda-1
+  console:
+    container_name: redpanda-console
+    image: docker.redpanda.com/redpandadata/console:v2.3.1
+    networks:
+      - index_network
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda-1:9092","redpanda-2:9092","redpanda-3:9092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://redpanda-1:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda-1:9644"]
+    ports:
+      - 8080:8080
+    depends_on:
+      - redpanda-1
+  cardano-markets-tracker:
+    image: clarkteddyswap/cardano-markets-tracker:a605b8334066446c6b1c0197b9957186df9c8928
+    container_name: cardano-markets-tracker
+    environment:
+      - KAFKA_BROKERS="redpanda-1:19092"
+      - START_SLOT=31541004
+      - START_HASH="898157caf22b78e8757419f5a5869aaacb691fbdcee7d6d7b74e5c71172dd610"
+      - CARDANO_NODE_SOCKET_PATH="/ipc/node.socket"
+    volumes:
+      - /tmp:/ipc
+    networks:
+      - index_network
+    depends_on:
+      - redpanda-1
+      - redpanda-2
+      - redpanda-3
+  redis-1:
     image: redis:latest
-    hostname: redisV2
+    hostname: redis-1
     restart: always
     command: ["redis-server"]
     ports:
       - '6379:6379'
     volumes:
-      - "./redis:/data"
-  redisV3:
+      - "redis-1:/data"
+    networks:
+      - index_network
+  redis-2:
     image: redis:latest
-    hostname: redisV3
+    hostname: redis-2
     restart: always
     command: ["redis-server"]
     ports:
       - '6378:6379'
     volumes:
-      - "./redis2:/data"
-  postgresV2:
+      - "redis-2:/data"
+    networks:
+      - index_network
+  postgres:
     image: postgres:16.0-alpine
-    hostname: postgresV2
+    hostname: postgres
     shm_size: 4g
-    ports: [ 5433:5432 ]
+    ports: [ 5432:5432 ]
     environment:
       POSTGRES_PASSWORD: pass
     volumes:
-      - "./postgres:/var/lib/postgresql/data:rw"
+      - "postgres:/var/lib/postgresql/data:rw"
+    networks:
+      - index_network
+  cardano-db-writer:
+    image: cardano-dex-index:1
+    hostname: cardano-db-writer
+    restart: always
+    networks:
+      - index_network
+    depends_on:
+      - redis-1
+      - postgres
+  cardano-rates-resolver:
+    image: cardano-rates-resolver:2
+    hostname: cardano-rates-resolver
+    restart: always
+    networks:
+      - index_network
+    depends_on:
+      - redis-1
+      - postgres
+  cardano-markets-api:
+    image: cardano-markets-api:2
+    hostname: cardano-markets-api
+    restart: always
+    ports: [ 8081:8081 ]
+    networks:
+      - index_network
+    depends_on:
+      - redis-1
+      - redis-2
+      - postgres
+
