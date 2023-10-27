@@ -65,8 +65,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          file: ./modules/rates-resolver/sys/Dockerfile
-          tags: clarkteddyswap/cardano-rates-resolver:${{ github.sha }}
+          file: ./modules/markets-api/sys/Dockerfile
+          tags: clarkteddyswap/markets-api:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: git_commit_id=${{ github.sha }}
