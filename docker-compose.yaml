@@ -207,7 +207,7 @@ services:
     networks:
       - index_network
   cardano-db-writer:
-    image: cardano-dex-index:1
+    image: clarkteddyswap/cardano-db-writer:603f5ae15d7046c07b820c2b387acb52ead3630b
     hostname: cardano-db-writer
     restart: always
     networks:
@@ -216,7 +216,7 @@ services:
       - redis-1
       - postgres
   cardano-rates-resolver:
-    image: cardano-rates-resolver:2
+    image: clarkteddyswap/cardano-rates-resolver:603f5ae15d7046c07b820c2b387acb52ead3630b
     hostname: cardano-rates-resolver
     restart: always
     networks:
@@ -225,7 +225,7 @@ services:
       - redis-1
       - postgres
   cardano-markets-api:
-    image: cardano-markets-api:2
+    image: clarkteddyswap/markets-api:603f5ae15d7046c07b820c2b387acb52ead3630b
     hostname: cardano-markets-api
     restart: always
     ports: [ 8081:8081 ]
