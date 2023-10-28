@@ -14,4 +14,6 @@ CMD ["/usr/bin/java", "-jar", "/markets-api.jar"]
 
 FROM openjdk:8-jre-slim
 COPY --from=builder /markets-api.jar /markets-api.jar
-ENTRYPOINT java -Xms1G -Xmx2G -jar /markets-api.jar
+COPY --from=builder /cardano-dex-index/modules/markets-api/src/main/resources/base.conf /tmp/base.conf
+ENV CONFIG_PATH=/tmp/base.conf
+ENTRYPOINT java -Xms1G -Xmx2G -jar /markets-api.jar $CONFIG_PATH

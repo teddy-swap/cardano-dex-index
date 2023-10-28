@@ -14,4 +14,6 @@ CMD ["/usr/bin/java", "-jar", "/indexes-writer.jar"]
 
 FROM openjdk:8-jre-slim
 COPY --from=builder /indexes-writer.jar /indexes-writer.jar
-ENTRYPOINT java -Xms1G -Xmx2G -jar /indexes-writer.jar
+COPY --from=builder /cardano-dex-index/modules/db-writer/src/main/resources/base.conf /tmp/base.conf
+ENV CONFIG_PATH=/tmp/base.conf
+ENTRYPOINT java -Xms1G -Xmx2G -jar /indexes-writer.jar $CONFIG_PATH

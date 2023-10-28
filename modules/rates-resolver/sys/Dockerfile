@@ -14,4 +14,6 @@ CMD ["/usr/bin/java", "-jar", "/rates-resolver.jar"]
 
 FROM openjdk:8-jre-slim
 COPY --from=builder /rates-resolver.jar /rates-resolver.jar
-ENTRYPOINT java -Xms1G -Xmx2G -jar /rates-resolver.jar
+COPY --from=builder /cardano-dex-index/modules/rates-resolver/src/main/resources/base.conf /tmp/base.conf
+ENV CONFIG_PATH=/tmp/base.conf
+ENTRYPOINT java -Xms1G -Xmx2G -jar /rates-resolver.jar $CONFIG_PATH
